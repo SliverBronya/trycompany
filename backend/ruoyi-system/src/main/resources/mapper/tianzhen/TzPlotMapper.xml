@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzPlotMapper">
+
+    <resultMap type="TzPlot" id="TzPlotResult">
+        <result property="plotId"       column="plot_id"       />
+        <result property="plotName"     column="plot_name"     />
+        <result property="cropType"     column="crop_type"     />
+        <result property="area"         column="area"          />
+        <result property="location"     column="location"      />
+        <result property="ownerName"    column="owner_name"    />
+        <result property="plantYear"    column="plant_year"    />
+        <result property="status"       column="status"        />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectTzPlotVo">
+        select plot_id, plot_name, crop_type, area, location, owner_name, plant_year, status,
+               create_by, create_time, update_by, update_time, remark
+        from tz_plot
+    </sql>
+
+    <select id="selectTzPlotById" parameterType="Long" resultMap="TzPlotResult">
+        <include refid="selectTzPlotVo"/>
+        where plot_id = #{plotId}
+    </select>
+
+    <select id="selectTzPlotList" parameterType="TzPlot" resultMap="TzPlotResult">
+        <include refid="selectTzPlotVo"/>
+        <where>
+            <if test="plotName != null and plotName != ''">
+                AND plot_name like concat('%', #{plotName}, '%')
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="location != null and location != ''">
+                AND location like concat('%', #{location}, '%')
+            </if>
+            <if test="ownerName != null and ownerName != ''">
+                AND owner_name like concat('%', #{ownerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by plot_id desc
+    </select>
+
+    <insert id="insertTzPlot" parameterType="TzPlot" useGeneratedKeys="true" keyProperty="plotId">
+        insert into tz_plot (
+            <if test="plotName != null and plotName != ''">plot_name, </if>
+            <if test="cropType != null and cropType != ''">crop_type, </if>
+            <if test="area != null">area, </if>
+            <if test="location != null and location != ''">location, </if>
+            <if test="ownerName != null and ownerName != ''">owner_name, </if>
+            <if test="plantYear != null">plant_year, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="plotName != null and plotName != ''">#{plotName}, </if>
+            <if test="cropType != null and cropType != ''">#{cropType}, </if>
+            <if test="area != null">#{area}, </if>
+            <if test="location != null and location != ''">#{location}, </if>
+            <if test="ownerName != null and ownerName != ''">#{ownerName}, </if>
+            <if test="plantYear != null">#{plantYear}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzPlot" parameterType="TzPlot">
+        update tz_plot
+        <set>
+            <if test="plotName != null and plotName != ''">plot_name = #{plotName}, </if>
+            <if test="cropType != null and cropType != ''">crop_type = #{cropType}, </if>
+            <if test="area != null">area = #{area}, </if>
+            <if test="location != null">location = #{location}, </if>
+            <if test="ownerName != null">owner_name = #{ownerName}, </if>
+            <if test="plantYear != null">plant_year = #{plantYear}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where plot_id = #{plotId}
+    </update>
+
+    <delete id="deleteTzPlotById" parameterType="Long">
+        delete from tz_plot where plot_id = #{plotId}
+    </delete>
+
+    <delete id="deleteTzPlotByIds" parameterType="Long">
+        delete from tz_plot where plot_id in
+        <foreach item="plotId" collection="array" open="(" separator="," close=")">
+            #{plotId}
+        </foreach>
+    </delete>
+
+    <select id="countRecordByPlotId" parameterType="Long" resultType="int">
+        select count(1) from tz_scouting_record where plot_id = #{plotId}
+    </select>
+
+    <select id="countTzPlot" parameterType="TzPlot" resultType="int">
+        select count(1) from tz_plot
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+        </where>
+    </select>
+
+</mapper>

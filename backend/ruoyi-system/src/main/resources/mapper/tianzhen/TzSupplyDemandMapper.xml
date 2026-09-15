@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzSupplyDemandMapper">
+
+    <resultMap type="TzSupplyDemand" id="TzSupplyDemandResult">
+        <result property="infoId"         column="info_id"        />
+        <result property="infoType"       column="info_type"      />
+        <result property="cropType"       column="crop_type"      />
+        <result property="variety"        column="variety"        />
+        <result property="quantity"       column="quantity"       />
+        <result property="priceExpect"    column="price_expect"   />
+        <result property="region"         column="region"         />
+        <result property="contactName"    column="contact_name"   />
+        <result property="contactPhone"   column="contact_phone"  />
+        <result property="description"    column="description"    />
+        <result property="status"         column="status"         />
+        <result property="createBy"       column="create_by"      />
+        <result property="createTime"     column="create_time"    />
+        <result property="updateBy"       column="update_by"      />
+        <result property="updateTime"     column="update_time"    />
+        <result property="remark"         column="remark"         />
+    </resultMap>
+
+    <sql id="selectTzSupplyDemandVo">
+        select info_id, info_type, crop_type, variety, quantity, price_expect, region,
+               contact_name, contact_phone, description, status,
+               create_by, create_time, update_by, update_time, remark
+        from tz_supply_demand
+    </sql>
+
+    <select id="selectTzSupplyDemandById" parameterType="Long" resultMap="TzSupplyDemandResult">
+        <include refid="selectTzSupplyDemandVo"/>
+        where info_id = #{infoId}
+    </select>
+
+    <select id="selectTzSupplyDemandList" parameterType="TzSupplyDemand" resultMap="TzSupplyDemandResult">
+        <include refid="selectTzSupplyDemandVo"/>
+        <where>
+            <if test="infoType != null and infoType != ''">
+                AND info_type = #{infoType}
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="variety != null and variety != ''">
+                AND variety like concat('%', #{variety}, '%')
+            </if>
+            <if test="region != null and region != ''">
+                AND region like concat('%', #{region}, '%')
+            </if>
+            <if test="contactName != null and contactName != ''">
+                AND contact_name like concat('%', #{contactName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <insert id="insertTzSupplyDemand" parameterType="TzSupplyDemand" useGeneratedKeys="true" keyProperty="infoId">
+        insert into tz_supply_demand (
+            <if test="infoType != null and infoType != ''">info_type, </if>
+            <if test="cropType != null and cropType != ''">crop_type, </if>
+            <if test="variety != null and variety != ''">variety, </if>
+            <if test="quantity != null">quantity, </if>
+            <if test="priceExpect != null and priceExpect != ''">price_expect, </if>
+            <if test="region != null and region != ''">region, </if>
+            <if test="contactName != null and contactName != ''">contact_name, </if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone, </if>
+            <if test="description != null and description != ''">description, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="infoType != null and infoType != ''">#{infoType}, </if>
+            <if test="cropType != null and cropType != ''">#{cropType}, </if>
+            <if test="variety != null and variety != ''">#{variety}, </if>
+            <if test="quantity != null">#{quantity}, </if>
+            <if test="priceExpect != null and priceExpect != ''">#{priceExpect}, </if>
+            <if test="region != null and region != ''">#{region}, </if>
+            <if test="contactName != null and contactName != ''">#{contactName}, </if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone}, </if>
+            <if test="description != null and description != ''">#{description}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzSupplyDemand" parameterType="TzSupplyDemand">
+        update tz_supply_demand
+        <set>
+            <if test="infoType != null and infoType != ''">info_type = #{infoType}, </if>
+            <if test="cropType != null and cropType != ''">crop_type = #{cropType}, </if>
+            <if test="variety != null">variety = #{variety}, </if>
+            <if test="quantity != null">quantity = #{quantity}, </if>
+            <if test="priceExpect != null">price_expect = #{priceExpect}, </if>
+            <if test="region != null">region = #{region}, </if>
+            <if test="contactName != null">contact_name = #{contactName}, </if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone}, </if>
+            <if test="description != null">description = #{description}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where info_id = #{infoId}
+    </update>
+
+    <delete id="deleteTzSupplyDemandById" parameterType="Long">
+        delete from tz_supply_demand where info_id = #{infoId}
+    </delete>
+
+    <delete id="deleteTzSupplyDemandByIds" parameterType="Long">
+        delete from tz_supply_demand where info_id in
+        <foreach item="infoId" collection="array" open="(" separator="," close=")">
+            #{infoId}
+        </foreach>
+    </delete>
+
+</mapper>

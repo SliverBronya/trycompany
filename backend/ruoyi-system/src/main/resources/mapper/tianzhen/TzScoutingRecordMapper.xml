@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzScoutingRecordMapper">
+
+    <resultMap type="TzScoutingRecord" id="TzScoutingRecordResult">
+        <result property="recordId"         column="record_id"         />
+        <result property="plotId"           column="plot_id"           />
+        <result property="scoutTime"        column="scout_time"        />
+        <result property="imageUrl"         column="image_url"         />
+        <result property="imageHash"        column="image_hash"        />
+        <result property="plantPart"        column="plant_part"        />
+        <result property="symptomText"      column="symptom_text"      />
+        <result property="severity"         column="severity"          />
+        <result property="diagnosisName"    column="diagnosis_name"    />
+        <result property="confidence"       column="confidence"        />
+        <result property="riskLevel"        column="risk_level"        />
+        <result property="diagnosisBasis"   column="diagnosis_basis"   />
+        <result property="diagnosisSource"  column="diagnosis_source"  />
+        <result property="knowledgeId"      column="knowledge_id"      />
+        <result property="suggestion"       column="suggestion"        />
+        <result property="suggestionSource" column="suggestion_source" />
+        <result property="dosageGuardHit"   column="dosage_guard_hit"  />
+        <result property="reportText"       column="report_text"       />
+        <result property="reportTime"       column="report_time"       />
+        <result property="status"           column="status"            />
+        <result property="createBy"         column="create_by"         />
+        <result property="createTime"       column="create_time"       />
+        <result property="updateBy"         column="update_by"         />
+        <result property="updateTime"       column="update_time"       />
+        <result property="remark"           column="remark"            />
+        <!-- 联表字段 -->
+        <result property="plotName"         column="plot_name"         />
+        <result property="cropType"         column="crop_type"         />
+    </resultMap>
+
+    <!-- 列表查询不取 report_text / suggestion 大字段，避免翻页时把长文本全捞回来 -->
+    <sql id="selectTzScoutingRecordVo">
+        select r.record_id, r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
+               r.symptom_text, r.severity, r.diagnosis_name, r.confidence, r.risk_level,
+               r.diagnosis_basis, r.diagnosis_source, r.knowledge_id, r.suggestion_source,
+               r.dosage_guard_hit, r.report_time, r.status,
+               r.create_by, r.create_time, r.update_by, r.update_time, r.remark,
+               p.plot_name as plot_name, p.crop_type as crop_type
+        from tz_scouting_record r
+        left join tz_plot p on p.plot_id = r.plot_id
+    </sql>
+
+    <select id="selectTzScoutingRecordById" parameterType="Long" resultMap="TzScoutingRecordResult">
+        select r.record_id, r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
+               r.symptom_text, r.severity, r.diagnosis_name, r.confidence, r.risk_level,
+               r.diagnosis_basis, r.diagnosis_source, r.knowledge_id, r.suggestion, r.suggestion_source,
+               r.dosage_guard_hit, r.report_text, r.report_time, r.status,
+               r.create_by, r.create_time, r.update_by, r.update_time, r.remark,
+               p.plot_name as plot_name, p.crop_type as crop_type
+        from tz_scouting_record r
+        left join tz_plot p on p.plot_id = r.plot_id
+        where r.record_id = #{recordId}
+    </select>
+
+    <select id="selectTzScoutingRecordList" parameterType="TzScoutingRecord" resultMap="TzScoutingRecordResult">
+        <include refid="selectTzScoutingRecordVo"/>
+        <where>
+            <if test="plotId != null">
+                AND r.plot_id = #{plotId}
+            </if>
+            <if test="diagnosisName != null and diagnosisName != ''">
+                AND r.diagnosis_name like concat('%', #{diagnosisName}, '%')
+            </if>
+            <if test="riskLevel != null and riskLevel != ''">
+                AND r.risk_level = #{riskLevel}
+            </if>
+            <if test="severity != null and severity != ''">
+                AND r.severity = #{severity}
+            </if>
+            <if test="plantPart != null and plantPart != ''">
+                AND r.plant_part = #{plantPart}
+            </if>
+            <if test="diagnosisSource != null and diagnosisSource != ''">
+                AND r.diagnosis_source = #{diagnosisSource}
+            </if>
+            <if test="status != null and status != ''">
+                AND r.status = #{status}
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND p.crop_type = #{cropType}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND r.scout_time &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND r.scout_time &lt;= concat(#{params.endTime}, ' 23:59:59')
+            </if>
+        </where>
+        order by r.record_id desc
+    </select>
+
+    <insert id="insertTzScoutingRecord" parameterType="TzScoutingRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into tz_scouting_record (
+            <if test="plotId != null">plot_id, </if>
+            <if test="scoutTime != null">scout_time, </if>
+            <if test="imageUrl != null and imageUrl != ''">image_url, </if>
+            <if test="imageHash != null and imageHash != ''">image_hash, </if>
+            <if test="plantPart != null and plantPart != ''">plant_part, </if>
+            <if test="symptomText != null and symptomText != ''">symptom_text, </if>
+            <if test="severity != null and severity != ''">severity, </if>
+            <if test="diagnosisName != null and diagnosisName != ''">diagnosis_name, </if>
+            <if test="confidence != null">confidence, </if>
+            <if test="riskLevel != null and riskLevel != ''">risk_level, </if>
+            <if test="diagnosisBasis != null and diagnosisBasis != ''">diagnosis_basis, </if>
+            <if test="diagnosisSource != null and diagnosisSource != ''">diagnosis_source, </if>
+            <if test="knowledgeId != null">knowledge_id, </if>
+            <if test="suggestion != null">suggestion, </if>
+            <if test="suggestionSource != null and suggestionSource != ''">suggestion_source, </if>
+            <if test="dosageGuardHit != null and dosageGuardHit != ''">dosage_guard_hit, </if>
+            <if test="reportText != null">report_text, </if>
+            <if test="reportTime != null">report_time, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="plotId != null">#{plotId}, </if>
+            <if test="scoutTime != null">#{scoutTime}, </if>
+            <if test="imageUrl != null and imageUrl != ''">#{imageUrl}, </if>
+            <if test="imageHash != null and imageHash != ''">#{imageHash}, </if>
+            <if test="plantPart != null and plantPart != ''">#{plantPart}, </if>
+            <if test="symptomText != null and symptomText != ''">#{symptomText}, </if>
+            <if test="severity != null and severity != ''">#{severity}, </if>
+            <if test="diagnosisName != null and diagnosisName != ''">#{diagnosisName}, </if>
+            <if test="confidence != null">#{confidence}, </if>
+            <if test="riskLevel != null and riskLevel != ''">#{riskLevel}, </if>
+            <if test="diagnosisBasis != null and diagnosisBasis != ''">#{diagnosisBasis}, </if>
+            <if test="diagnosisSource != null and diagnosisSource != ''">#{diagnosisSource}, </if>
+            <if test="knowledgeId != null">#{knowledgeId}, </if>
+            <if test="suggestion != null">#{suggestion}, </if>
+            <if test="suggestionSource != null and suggestionSource != ''">#{suggestionSource}, </if>
+            <if test="dosageGuardHit != null and dosageGuardHit != ''">#{dosageGuardHit}, </if>
+            <if test="reportText != null">#{reportText}, </if>
+            <if test="reportTime != null">#{reportTime}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzScoutingRecord" parameterType="TzScoutingRecord">
+        update tz_scouting_record
+        <set>
+            <if test="plotId != null">plot_id = #{plotId}, </if>
+            <if test="scoutTime != null">scout_time = #{scoutTime}, </if>
+            <if test="imageUrl != null">image_url = #{imageUrl}, </if>
+            <if test="imageHash != null">image_hash = #{imageHash}, </if>
+            <if test="plantPart != null">plant_part = #{plantPart}, </if>
+            <if test="symptomText != null">symptom_text = #{symptomText}, </if>
+            <if test="severity != null">severity = #{severity}, </if>
+            <if test="diagnosisName != null">diagnosis_name = #{diagnosisName}, </if>
+            <if test="confidence != null">confidence = #{confidence}, </if>
+            <if test="riskLevel != null">risk_level = #{riskLevel}, </if>
+            <if test="diagnosisBasis != null">diagnosis_basis = #{diagnosisBasis}, </if>
+            <if test="diagnosisSource != null">diagnosis_source = #{diagnosisSource}, </if>
+            <if test="knowledgeId != null">knowledge_id = #{knowledgeId}, </if>
+            <if test="suggestion != null">suggestion = #{suggestion}, </if>
+            <if test="suggestionSource != null">suggestion_source = #{suggestionSource}, </if>
+            <if test="dosageGuardHit != null">dosage_guard_hit = #{dosageGuardHit}, </if>
+            <if test="reportText != null">report_text = #{reportText}, </if>
+            <if test="reportTime != null">report_time = #{reportTime}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteTzScoutingRecordById" parameterType="Long">
+        delete from tz_scouting_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteTzScoutingRecordByIds" parameterType="Long">
+        delete from tz_scouting_record where record_id in
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+
+    <!-- ==================== 首页看板统计 ==================== -->
+
+    <select id="selectDashboardSummary" resultType="java.util.HashMap">
+        select count(1)                                                          as totalRecords,
+               sum(case when date_format(scout_time, '%Y-%m') = date_format(curdate(), '%Y-%m')
+                        then 1 else 0 end)                                       as monthRecords,
+               sum(case when risk_level = '3' then 1 else 0 end)                 as highRiskRecords,
+               sum(case when diagnosis_name is not null and diagnosis_name != ''
+                        then 1 else 0 end)                                       as diagnosedRecords,
+               sum(case when dosage_guard_hit = '1' then 1 else 0 end)           as dosageGuardHits,
+               ifnull(round(avg(confidence), 1), 0)                              as avgConfidence
+        from tz_scouting_record
+    </select>
+
+    <select id="selectDiagnosisDistribution" resultType="java.util.HashMap">
+        select ifnull(diagnosis_name, '未诊断') as `name`, count(1) as `value`
+        from tz_scouting_record
+        group by diagnosis_name
+        order by `value` desc
+        limit 10
+    </select>
+
+    <select id="selectRiskDistribution" resultType="java.util.HashMap">
+        select case risk_level
+                   when '1' then '低风险'
+                   when '2' then '中风险'
+                   when '3' then '高风险'
+                   else '未评估'
+               end as `name`,
+               count(1) as `value`
+        from tz_scouting_record
+        group by risk_level
+        order by risk_level
+    </select>
+
+    <select id="selectSourceDistribution" resultType="java.util.HashMap">
+        select case diagnosis_source
+                   when 'preset'   then '预置映射'
+                   when 'llm'      then '大模型'
+                   when 'fallback' then '降级结果'
+                   when 'manual'   then '人工录入'
+                   else '未诊断'
+               end as `name`,
+               count(1) as `value`
+        from tz_scouting_record
+        group by diagnosis_source
+        order by `value` desc
+    </select>
+
+    <select id="selectScoutTrend" parameterType="int" resultType="java.util.HashMap">
+        select date_format(scout_time, '%m-%d') as `date`, count(1) as `count`
+        from tz_scouting_record
+        where scout_time is not null
+          and scout_time &gt;= date_sub(curdate(), interval #{days} day)
+        group by date_format(scout_time, '%m-%d')
+        order by min(scout_time)
+    </select>
+
+</mapper>

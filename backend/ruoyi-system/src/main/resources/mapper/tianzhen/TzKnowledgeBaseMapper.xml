@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzKnowledgeBaseMapper">
+
+    <resultMap type="TzKnowledgeBase" id="TzKnowledgeBaseResult">
+        <result property="knowledgeId"        column="knowledge_id"        />
+        <result property="cropType"           column="crop_type"           />
+        <result property="diseaseName"        column="disease_name"        />
+        <result property="category"           column="category"            />
+        <result property="symptoms"           column="symptoms"            />
+        <result property="keyFeatures"        column="key_features"        />
+        <result property="differential"       column="differential"        />
+        <result property="typicalImage"       column="typical_image"       />
+        <result property="triggerConditions"  column="trigger_conditions"  />
+        <result property="prevention"         column="prevention"          />
+        <result property="medicineNote"       column="medicine_note"       />
+        <result property="safetyNote"         column="safety_note"         />
+        <result property="source"             column="source"              />
+        <result property="status"             column="status"              />
+        <result property="createBy"           column="create_by"           />
+        <result property="createTime"         column="create_time"         />
+        <result property="updateBy"           column="update_by"           />
+        <result property="updateTime"         column="update_time"         />
+        <result property="remark"             column="remark"              />
+    </resultMap>
+
+    <sql id="selectTzKnowledgeBaseVo">
+        select knowledge_id, crop_type, disease_name, category, symptoms,
+               key_features, differential, typical_image, trigger_conditions,
+               prevention, medicine_note, safety_note, source, status,
+               create_by, create_time, update_by, update_time, remark
+        from tz_knowledge_base
+    </sql>
+
+    <select id="selectTzKnowledgeBaseById" parameterType="Long" resultMap="TzKnowledgeBaseResult">
+        <include refid="selectTzKnowledgeBaseVo"/>
+        where knowledge_id = #{knowledgeId}
+    </select>
+
+    <select id="selectTzKnowledgeBaseList" parameterType="TzKnowledgeBase" resultMap="TzKnowledgeBaseResult">
+        <include refid="selectTzKnowledgeBaseVo"/>
+        <where>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="diseaseName != null and diseaseName != ''">
+                AND disease_name like concat('%', #{diseaseName}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="symptoms != null and symptoms != ''">
+                AND (symptoms like concat('%', #{symptoms}, '%') or disease_name like concat('%', #{symptoms}, '%'))
+            </if>
+        </where>
+        order by knowledge_id asc
+    </select>
+
+    <!-- 诊断结果 → 知识库条目：按名称精确匹配，多条时取启用中的第一条 -->
+    <select id="selectTzKnowledgeBaseByName" parameterType="String" resultMap="TzKnowledgeBaseResult">
+        <include refid="selectTzKnowledgeBaseVo"/>
+        where disease_name = #{diseaseName}
+        order by status asc, knowledge_id asc
+        limit 1
+    </select>
+
+    <insert id="insertTzKnowledgeBase" parameterType="TzKnowledgeBase" useGeneratedKeys="true" keyProperty="knowledgeId">
+        insert into tz_knowledge_base (
+            <if test="cropType != null and cropType != ''">crop_type, </if>
+            <if test="diseaseName != null and diseaseName != ''">disease_name, </if>
+            <if test="category != null and category != ''">category, </if>
+            <if test="symptoms != null">symptoms, </if>
+            <if test="keyFeatures != null">key_features, </if>
+            <if test="differential != null">differential, </if>
+            <if test="typicalImage != null">typical_image, </if>
+            <if test="triggerConditions != null">trigger_conditions, </if>
+            <if test="prevention != null">prevention, </if>
+            <if test="medicineNote != null">medicine_note, </if>
+            <if test="safetyNote != null">safety_note, </if>
+            <if test="source != null and source != ''">source, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="cropType != null and cropType != ''">#{cropType}, </if>
+            <if test="diseaseName != null and diseaseName != ''">#{diseaseName}, </if>
+            <if test="category != null and category != ''">#{category}, </if>
+            <if test="symptoms != null">#{symptoms}, </if>
+            <if test="keyFeatures != null">#{keyFeatures}, </if>
+            <if test="differential != null">#{differential}, </if>
+            <if test="typicalImage != null">#{typicalImage}, </if>
+            <if test="triggerConditions != null">#{triggerConditions}, </if>
+            <if test="prevention != null">#{prevention}, </if>
+            <if test="medicineNote != null">#{medicineNote}, </if>
+            <if test="safetyNote != null">#{safetyNote}, </if>
+            <if test="source != null and source != ''">#{source}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzKnowledgeBase" parameterType="TzKnowledgeBase">
+        update tz_knowledge_base
+        <set>
+            <if test="cropType != null and cropType != ''">crop_type = #{cropType}, </if>
+            <if test="diseaseName != null and diseaseName != ''">disease_name = #{diseaseName}, </if>
+            <if test="category != null and category != ''">category = #{category}, </if>
+            <if test="symptoms != null">symptoms = #{symptoms}, </if>
+            <if test="keyFeatures != null">key_features = #{keyFeatures}, </if>
+            <if test="differential != null">differential = #{differential}, </if>
+            <if test="typicalImage != null">typical_image = #{typicalImage}, </if>
+            <if test="triggerConditions != null">trigger_conditions = #{triggerConditions}, </if>
+            <if test="prevention != null">prevention = #{prevention}, </if>
+            <if test="medicineNote != null">medicine_note = #{medicineNote}, </if>
+            <if test="safetyNote != null">safety_note = #{safetyNote}, </if>
+            <if test="source != null and source != ''">source = #{source}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where knowledge_id = #{knowledgeId}
+    </update>
+
+    <delete id="deleteTzKnowledgeBaseById" parameterType="Long">
+        delete from tz_knowledge_base where knowledge_id = #{knowledgeId}
+    </delete>
+
+    <delete id="deleteTzKnowledgeBaseByIds" parameterType="Long">
+        delete from tz_knowledge_base where knowledge_id in
+        <foreach item="knowledgeId" collection="array" open="(" separator="," close=")">
+            #{knowledgeId}
+        </foreach>
+    </delete>
+
+</mapper>

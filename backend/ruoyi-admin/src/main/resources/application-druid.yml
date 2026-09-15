@@ -1,0 +1,64 @@
+# 数据源配置
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        druid:
+            # 主库数据源
+            master:
+                # allowPublicKeyRetrieval=true 不能省：MySQL8 的 caching_sha2_password 在 useSSL=false 时
+                # 需要向服务端取 RSA 公钥来做首次认证，默认被驱动拒绝，报 "Public Key Retrieval is not allowed"。
+                # 服务端缓存过该用户的一次完整认证后走快速路径，就不再需要公钥 —— 所以这个错只在
+                # MySQL 刚重启、缓存为空、且第一条连接就是 JDBC 时出现，非常像"环境没起来"，实则是必配项。
+                url: jdbc:mysql://127.0.0.1:13306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8
+                username: root
+                password: Root@123456
+            # 从库数据源
+            slave:
+                # 从数据源开关/默认关闭
+                enabled: false
+                url: 
+                username: 
+                password: 
+            # 初始连接数
+            initialSize: 5
+            # 最小连接池数量
+            minIdle: 10
+            # 最大连接池数量
+            maxActive: 20
+            # 配置获取连接等待超时的时间
+            maxWait: 60000
+            # 配置连接超时时间
+            connectTimeout: 30000
+            # 配置网络超时时间
+            socketTimeout: 60000
+            # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+            timeBetweenEvictionRunsMillis: 60000
+            # 配置一个连接在池中最小生存的时间，单位是毫秒
+            minEvictableIdleTimeMillis: 300000
+            # 配置一个连接在池中最大生存的时间，单位是毫秒
+            maxEvictableIdleTimeMillis: 900000
+            # 配置检测连接是否有效
+            validationQuery: SELECT 1 FROM DUAL
+            testWhileIdle: true
+            testOnBorrow: false
+            testOnReturn: false
+            # 监控台默认关闭。Druid 的 stat 视图会列出执行过的 SQL **连参数值一起**，
+            # 而 SecurityConfig 里 /druid/** 是 permitAll 的，默认口令又是 RuoYi 人尽皆知的
+            # ruoyi/123456 —— 三者叠起来等于把「一个不需要登录、能读全库 SQL 的后台」挂在公网上。
+            # 挂了 ngrok 之后这条必须关：设白名单没用，ngrok 从本机转发，源 IP 看着就是 127.0.0.1。
+            # 本地要临时看监控，改回 true 并重启后端即可，别在公网期间打开。
+            webStatFilter:
+                enabled: false
+            statViewServlet:
+                enabled: false
+            filter:
+                stat:
+                    enabled: true
+                    # 慢SQL记录
+                    log-slow-sql: true
+                    slow-sql-millis: 1000
+                    merge-sql: true
+                wall:
+                    config:
+                        multi-statement-allow: true

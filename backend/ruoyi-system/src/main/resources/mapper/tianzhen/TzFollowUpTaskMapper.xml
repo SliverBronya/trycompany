@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzFollowUpTaskMapper">
+
+    <resultMap type="TzFollowUpTask" id="TzFollowUpTaskResult">
+        <result property="taskId"         column="task_id"         />
+        <result property="recordId"       column="record_id"       />
+        <result property="plotId"         column="plot_id"         />
+        <result property="taskTitle"      column="task_title"      />
+        <result property="dueDate"        column="due_date"        />
+        <result property="status"         column="status"          />
+        <result property="note"           column="note"            />
+        <result property="finishTime"     column="finish_time"     />
+        <result property="createBy"       column="create_by"       />
+        <result property="createTime"     column="create_time"     />
+        <result property="updateBy"       column="update_by"       />
+        <result property="updateTime"     column="update_time"     />
+        <result property="remark"         column="remark"          />
+        <!-- 联表字段 -->
+        <result property="plotName"       column="plot_name"       />
+        <result property="diagnosisName"  column="diagnosis_name"  />
+    </resultMap>
+
+    <sql id="selectTzFollowUpTaskVo">
+        select t.task_id, t.record_id, t.plot_id, t.task_title, t.due_date, t.status, t.note,
+               t.finish_time, t.create_by, t.create_time, t.update_by, t.update_time, t.remark,
+               p.plot_name as plot_name, r.diagnosis_name as diagnosis_name
+        from tz_follow_up_task t
+        left join tz_plot p on p.plot_id = t.plot_id
+        left join tz_scouting_record r on r.record_id = t.record_id
+    </sql>
+
+    <select id="selectTzFollowUpTaskById" parameterType="Long" resultMap="TzFollowUpTaskResult">
+        <include refid="selectTzFollowUpTaskVo"/>
+        where t.task_id = #{taskId}
+    </select>
+
+    <select id="selectTzFollowUpTaskList" parameterType="TzFollowUpTask" resultMap="TzFollowUpTaskResult">
+        <include refid="selectTzFollowUpTaskVo"/>
+        <where>
+            <if test="recordId != null">
+                AND t.record_id = #{recordId}
+            </if>
+            <if test="plotId != null">
+                AND t.plot_id = #{plotId}
+            </if>
+            <if test="taskTitle != null and taskTitle != ''">
+                AND t.task_title like concat('%', #{taskTitle}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND t.status = #{status}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND t.due_date &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND t.due_date &lt;= #{params.endTime}
+            </if>
+        </where>
+        order by
+            case t.status when '0' then 0 when '2' then 1 else 2 end,
+            t.due_date asc,
+            t.task_id desc
+    </select>
+
+    <insert id="insertTzFollowUpTask" parameterType="TzFollowUpTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into tz_follow_up_task (
+            <if test="recordId != null">record_id, </if>
+            <if test="plotId != null">plot_id, </if>
+            <if test="taskTitle != null and taskTitle != ''">task_title, </if>
+            <if test="dueDate != null">due_date, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="note != null and note != ''">note, </if>
+            <if test="finishTime != null">finish_time, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="recordId != null">#{recordId}, </if>
+            <if test="plotId != null">#{plotId}, </if>
+            <if test="taskTitle != null and taskTitle != ''">#{taskTitle}, </if>
+            <if test="dueDate != null">#{dueDate}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="note != null and note != ''">#{note}, </if>
+            <if test="finishTime != null">#{finishTime}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzFollowUpTask" parameterType="TzFollowUpTask">
+        update tz_follow_up_task
+        <set>
+            <if test="recordId != null">record_id = #{recordId}, </if>
+            <if test="plotId != null">plot_id = #{plotId}, </if>
+            <if test="taskTitle != null and taskTitle != ''">task_title = #{taskTitle}, </if>
+            <if test="dueDate != null">due_date = #{dueDate}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="note != null">note = #{note}, </if>
+            <if test="finishTime != null">finish_time = #{finishTime}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteTzFollowUpTaskById" parameterType="Long">
+        delete from tz_follow_up_task where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteTzFollowUpTaskByIds" parameterType="Long">
+        delete from tz_follow_up_task where task_id in
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+
+    <!-- 删除巡田记录时级联清理其复查任务 -->
+    <delete id="deleteTzFollowUpTaskByRecordIds" parameterType="Long">
+        delete from tz_follow_up_task where record_id in
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+
+    <!-- 把已过截止日期且仍待复查的任务刷成「已逾期」 -->
+    <update id="refreshOverdueTasks">
+        update tz_follow_up_task
+        set status = '2', update_time = sysdate()
+        where status = '0' and due_date is not null and due_date &lt; curdate()
+    </update>
+
+    <select id="countPendingTasks" resultType="int">
+        select count(1) from tz_follow_up_task where status in ('0', '2')
+    </select>
+
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzAiCallLogMapper">
+
+    <resultMap type="TzAiCallLog" id="TzAiCallLogResult">
+        <result property="logId"         column="log_id"         />
+        <result property="bizType"       column="biz_type"       />
+        <result property="bizId"         column="biz_id"         />
+        <result property="provider"      column="provider"       />
+        <result property="model"         column="model"          />
+        <result property="promptDigest"  column="prompt_digest"  />
+        <result property="latencyMs"     column="latency_ms"     />
+        <result property="success"       column="success"        />
+        <result property="fallbackUsed"  column="fallback_used"  />
+        <result property="errorMsg"      column="error_msg"      />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <select id="selectTzAiCallLogList" parameterType="TzAiCallLog" resultMap="TzAiCallLogResult">
+        select log_id, biz_type, biz_id, provider, model, prompt_digest, latency_ms,
+               success, fallback_used, error_msg, create_by, create_time
+        from tz_ai_call_log
+        <where>
+            <if test="bizType != null and bizType != ''">
+                AND biz_type = #{bizType}
+            </if>
+            <if test="bizId != null and bizId != ''">
+                AND biz_id = #{bizId}
+            </if>
+            <if test="success != null and success != ''">
+                AND success = #{success}
+            </if>
+            <if test="provider != null and provider != ''">
+                AND provider = #{provider}
+            </if>
+        </where>
+        order by log_id desc
+    </select>
+
+    <insert id="insertTzAiCallLog" parameterType="TzAiCallLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into tz_ai_call_log (
+            <if test="bizType != null and bizType != ''">biz_type, </if>
+            <if test="bizId != null and bizId != ''">biz_id, </if>
+            <if test="provider != null and provider != ''">provider, </if>
+            <if test="model != null and model != ''">model, </if>
+            <if test="promptDigest != null and promptDigest != ''">prompt_digest, </if>
+            <if test="latencyMs != null">latency_ms, </if>
+            <if test="success != null and success != ''">success, </if>
+            <if test="fallbackUsed != null and fallbackUsed != ''">fallback_used, </if>
+            <if test="errorMsg != null and errorMsg != ''">error_msg, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="bizType != null and bizType != ''">#{bizType}, </if>
+            <if test="bizId != null and bizId != ''">#{bizId}, </if>
+            <if test="provider != null and provider != ''">#{provider}, </if>
+            <if test="model != null and model != ''">#{model}, </if>
+            <if test="promptDigest != null and promptDigest != ''">#{promptDigest}, </if>
+            <if test="latencyMs != null">#{latencyMs}, </if>
+            <if test="success != null and success != ''">#{success}, </if>
+            <if test="fallbackUsed != null and fallbackUsed != ''">#{fallbackUsed}, </if>
+            <if test="errorMsg != null and errorMsg != ''">#{errorMsg}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <delete id="cleanTzAiCallLog">
+        delete from tz_ai_call_log
+    </delete>
+
+</mapper>

@@ -1,0 +1,165 @@
+/**
+ * 手机网页版适配。
+ *
+ * 定位：这是**内容层**的适配。外壳层 RuoYi 已经做好了 —— `layout/index.vue` 在宽度
+ * 小于 992px 时把侧边栏切成抽屉，并带一层点击遮罩；`index.html` 里也有 viewport meta。
+ * 但壳子能收起不代表内容能用：表格会把页面撑宽、弹窗固定 720px 在手机上要左右拖、
+ * 行内搜索表单挤成一团、表单标签固定 100px 宽把输入框压到只剩一条缝。
+ *
+ * 断点沿用 RuoYi 的两个既有数字，不另起一套：
+ *   992px —— 与 layout 的 device 判定一致（之下算手机/竖屏平板）
+ *   768px —— 与 RuoYi 的 ruoyi.scss 一致（之下算手机）
+ *
+ * 原则：**只改布局，不改信息**。手机上该看到的内容一条不能少，
+ * 只是从「并排」变成「上下」、从「固定宽」变成「自适应」。
+ */
+
+// ---------------------------------------------------------------- 页面容器
+@media (max-width: 768px) {
+  .app-container {
+    // 手机上 20px 的四周留白太奢侈，一屏本来就窄
+    padding: 12px 10px;
+  }
+
+  // 通栏页面（首页那种）本来就没用 app-container，这里兜一层，避免贴边
+  .app-main {
+    overflow-x: hidden;
+  }
+}
+
+// ---------------------------------------------------------------- 行内搜索表单
+// 默认的 inline 表单在窄屏上会挤成两三列、输入框被压到几厘米宽。
+// 手机上直接改成一列一块，宽度铺满。
+@media (max-width: 768px) {
+  .el-form--inline {
+    .el-form-item {
+      display: block;
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+
+    .el-form-item__content {
+      width: 100%;
+    }
+
+    // 搜索框、下拉、日期选择器一律铺满
+    .el-input,
+    .el-select,
+    .el-date-editor,
+    .el-cascader {
+      width: 100% !important;
+    }
+  }
+
+  // 表格上方的按钮条：本来就靠 el-col 固定宽度排一行，手机上要允许换行
+  .mb8 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+
+    > .el-col {
+      max-width: none;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- 表单标签
+// 桌面端标签在左（label-width=100px），手机上这个宽度会把输入框挤没。
+// 改成标签独占一行、输入框铺满 —— 这是手机上最容易「看起来坏了」的地方。
+@media (max-width: 768px) {
+  .el-dialog,
+  .el-drawer {
+    .el-form-item {
+      display: block;
+    }
+
+    .el-form-item__label {
+      display: block;
+      float: none;
+      width: auto !important;
+      max-width: 100%;
+      text-align: left;
+      padding: 0 0 4px 0;
+      line-height: 1.5;
+    }
+
+    .el-form-item__content {
+      margin-left: 0 !important;
+    }
+
+    // 弹窗里常见「一行两列」（el-col :span="12"）。手机上并排会把每列压到
+    // 45vw 左右，输入框里的字基本看不全，一律改成整行。
+    .el-form .el-col {
+      max-width: 100%;
+      flex: 0 0 100%;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- 弹窗与抽屉
+@media (max-width: 768px) {
+  // 弹窗默认 720/820px 固定宽，手机上会超出屏幕，右侧按钮点不到
+  .el-dialog {
+    --el-dialog-width: 94vw;
+    width: 94vw !important;
+    margin: 8vh auto !important;
+  }
+
+  .el-drawer {
+    width: 92vw !important;
+    max-width: 92vw !important;
+  }
+
+  // 消息确认框同理
+  .el-message-box {
+    width: 88vw !important;
+  }
+
+  // 分页条在窄屏会折行，居中一下更好按
+  .el-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
+
+// ---------------------------------------------------------------- 表格
+// Element Plus 的表格本身会横向滚动，但默认字号与内边距在手机上偏大，
+// 一屏看不到几列。这里只压缩密度，不隐藏任何列 —— 隐藏列会让人以为没这一项。
+@media (max-width: 768px) {
+  .el-table {
+    font-size: 13px;
+
+    th.el-table__cell,
+    td.el-table__cell {
+      padding: 6px 0;
+    }
+
+    .cell {
+      padding: 0 6px;
+      line-height: 1.5;
+    }
+  }
+
+  // 右侧固定的操作列在窄屏会盖住内容，去掉固定、改为普通列
+  .el-table__fixed-right,
+  .el-table__fixed {
+    display: none !important;
+  }
+}
+
+// ---------------------------------------------------------------- 触控友好
+// 手机上按钮和输入框至少 36px 高，否则容易点空
+@media (max-width: 768px) {
+  .el-button:not(.is-link):not(.el-button--small) {
+    min-height: 36px;
+  }
+
+  .el-input__wrapper,
+  .el-select__wrapper {
+    min-height: 36px;
+  }
+}

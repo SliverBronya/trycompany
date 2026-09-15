@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzQaSessionMapper">
+
+    <resultMap type="TzQaSession" id="TzQaSessionResult">
+        <result property="sessionId"    column="session_id"    />
+        <result property="sessionTitle" column="session_title" />
+        <result property="userId"       column="user_id"       />
+        <result property="userName"     column="user_name"     />
+        <result property="msgCount"     column="msg_count"     />
+        <result property="status"       column="status"        />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectTzQaSessionVo">
+        select session_id, session_title, user_id, user_name, msg_count, status,
+               create_by, create_time, update_by, update_time, remark
+        from tz_qa_session
+    </sql>
+
+    <select id="selectTzQaSessionById" parameterType="Long" resultMap="TzQaSessionResult">
+        <include refid="selectTzQaSessionVo"/>
+        where session_id = #{sessionId}
+    </select>
+
+    <select id="selectTzQaSessionList" parameterType="TzQaSession" resultMap="TzQaSessionResult">
+        <include refid="selectTzQaSessionVo"/>
+        <where>
+            <if test="sessionTitle != null and sessionTitle != ''">
+                AND session_title like concat('%', #{sessionTitle}, '%')
+            </if>
+            <if test="userName != null and userName != ''">
+                AND user_name like concat('%', #{userName}, '%')
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by session_id desc
+    </select>
+
+    <insert id="insertTzQaSession" parameterType="TzQaSession" useGeneratedKeys="true" keyProperty="sessionId">
+        insert into tz_qa_session (
+            <if test="sessionTitle != null and sessionTitle != ''">session_title, </if>
+            <if test="userId != null">user_id, </if>
+            <if test="userName != null and userName != ''">user_name, </if>
+            <if test="msgCount != null">msg_count, </if>
+            <if test="status != null and status != ''">status, </if>
+            <if test="remark != null and remark != ''">remark, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="sessionTitle != null and sessionTitle != ''">#{sessionTitle}, </if>
+            <if test="userId != null">#{userId}, </if>
+            <if test="userName != null and userName != ''">#{userName}, </if>
+            <if test="msgCount != null">#{msgCount}, </if>
+            <if test="status != null and status != ''">#{status}, </if>
+            <if test="remark != null and remark != ''">#{remark}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTzQaSession" parameterType="TzQaSession">
+        update tz_qa_session
+        <set>
+            <if test="sessionTitle != null and sessionTitle != ''">session_title = #{sessionTitle}, </if>
+            <if test="userId != null">user_id = #{userId}, </if>
+            <if test="userName != null">user_name = #{userName}, </if>
+            <if test="msgCount != null">msg_count = #{msgCount}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy}, </if>
+            update_time = sysdate()
+        </set>
+        where session_id = #{sessionId}
+    </update>
+
+    <delete id="deleteTzQaSessionById" parameterType="Long">
+        delete from tz_qa_session where session_id = #{sessionId}
+    </delete>
+
+    <delete id="deleteTzQaSessionByIds" parameterType="Long">
+        delete from tz_qa_session where session_id in
+        <foreach item="sessionId" collection="array" open="(" separator="," close=")">
+            #{sessionId}
+        </foreach>
+    </delete>
+
+    <!-- 计数按「条」累加：一次提问落库两条消息（问 + 答），由写消息的那处传 1 条一次 -->
+    <update id="increaseMsgCount">
+        update tz_qa_session
+        set msg_count = ifnull(msg_count, 0) + #{delta},
+            update_time = sysdate()
+        where session_id = #{sessionId}
+    </update>
+
+</mapper>

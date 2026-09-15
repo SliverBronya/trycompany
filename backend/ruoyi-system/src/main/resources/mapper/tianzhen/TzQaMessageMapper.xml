@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzQaMessageMapper">
+
+    <!-- 本表只有 create_by / create_time，没有 update_* 与 remark，
+         所以 resultMap 也不映射这三列，避免运行时「未知列」报错 -->
+    <resultMap type="TzQaMessage" id="TzQaMessageResult">
+        <result property="messageId"    column="message_id"    />
+        <result property="sessionId"    column="session_id"    />
+        <result property="role"         column="role"          />
+        <result property="content"      column="content"       />
+        <result property="imageUrl"     column="image_url"     />
+        <result property="sources"      column="sources"       />
+        <result property="answerStatus" column="answer_status" />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+    </resultMap>
+
+    <sql id="selectTzQaMessageVo">
+        select message_id, session_id, role, content, image_url, sources, answer_status,
+               create_by, create_time
+        from tz_qa_message
+    </sql>
+
+    <select id="selectTzQaMessageById" parameterType="Long" resultMap="TzQaMessageResult">
+        <include refid="selectTzQaMessageVo"/>
+        where message_id = #{messageId}
+    </select>
+
+    <!-- 会话内按时间正序：问答界面是从上往下读的，倒序会让人以为答在问前 -->
+    <select id="selectTzQaMessageList" parameterType="TzQaMessage" resultMap="TzQaMessageResult">
+        <include refid="selectTzQaMessageVo"/>
+        <where>
+            <if test="sessionId != null">
+                AND session_id = #{sessionId}
+            </if>
+            <if test="role != null and role != ''">
+                AND role = #{role}
+            </if>
+            <if test="answerStatus != null and answerStatus != ''">
+                AND answer_status = #{answerStatus}
+            </if>
+        </where>
+        order by message_id asc
+    </select>
+
+    <insert id="insertTzQaMessage" parameterType="TzQaMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into tz_qa_message (
+            <if test="sessionId != null">session_id, </if>
+            <if test="role != null and role != ''">role, </if>
+            <if test="content != null">content, </if>
+            <if test="imageUrl != null and imageUrl != ''">image_url, </if>
+            <if test="sources != null and sources != ''">sources, </if>
+            <if test="answerStatus != null and answerStatus != ''">answer_status, </if>
+            <if test="createBy != null and createBy != ''">create_by, </if>
+            create_time
+        )values(
+            <if test="sessionId != null">#{sessionId}, </if>
+            <if test="role != null and role != ''">#{role}, </if>
+            <if test="content != null">#{content}, </if>
+            <if test="imageUrl != null and imageUrl != ''">#{imageUrl}, </if>
+            <if test="sources != null and sources != ''">#{sources}, </if>
+            <if test="answerStatus != null and answerStatus != ''">#{answerStatus}, </if>
+            <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            sysdate()
+        )
+    </insert>
+
+    <delete id="deleteTzQaMessageById" parameterType="Long">
+        delete from tz_qa_message where message_id = #{messageId}
+    </delete>
+
+    <delete id="deleteTzQaMessageByIds" parameterType="Long">
+        delete from tz_qa_message where message_id in
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTzQaMessageBySessionId" parameterType="Long">
+        delete from tz_qa_message where session_id = #{sessionId}
+    </delete>
+
+</mapper>
