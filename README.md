@@ -133,20 +133,50 @@ AI 生成的建议里凡出现用量数值，都被拿去和知识库 `medicine_
 
 ## 快速开始
 
-### 1. 准备数据库与缓存
+### 1. 初始化数据库（一条命令）
+
+```powershell
+# 口令来源见下一步；设好之后直接跑：
+powershell -NoProfile -File scripts\init-db.ps1
+```
+
+它会建库、按依赖顺序导入全部 10 个 SQL、并校验结果（业务表 10 张 / 知识库 27 条 /
+菜单 44 项 / 关键列存在）。**别手工一个个导入** —— 顺序错了不会报错，
+只会静默建出一个缺列或缺数据的库，而问题要到运行时才炸，离真正原因很远。
+
+MySQL 不在默认路径或端口时：
+
+```powershell
+powershell -NoProfile -File scripts\init-db.ps1 -MysqlExe "D:\mysql\bin\mysql.exe" -Port 3306
+```
+
+<details>
+<summary>它导了哪些文件（也可手工逐个导入）</summary>
+
+| # | 文件 | 内容 |
+|---|---|---|
+| 1 | `backend/sql/ry_20260417.sql` | 若依基础表 |
+| 2 | `backend/sql/quartz.sql` | 定时任务表 |
+| 3 | `sql/tz_schema.sql` | 业务表 10 张 |
+| 4 | `sql/tz_menu.sql` | 菜单与权限 |
+| 5 | `sql/tz_knowledge_seed.sql` | 知识库 15 条 |
+| 6 | `sql/tz_kb_structure.sql` | 加「特征性表现/鉴别要点/典型图片」三栏并写入内容（**依赖 5**） |
+| 7 | `sql/tz_kb_expand.sql` | 知识库扩到 27 条 |
+| 8 | `sql/tz_photo_describe.sql` | 预置样张加 `symptom_text` |
+| 9 | `sql/tz_menu_flatten.sql` | 菜单扁平化、关闭行情与供求（**依赖 4**） |
+| 10 | `sql/tz_register.sql` | 自助注册开关与默认角色 |
+
+全部可重复执行（建表用 `CREATE TABLE IF NOT EXISTS`，菜单是「先删后插」）。
+`sql/role_common_menu_backup_20260913.sql` 是权限收敛前的备份，**不参与初始化**。
+</details>
+
+### 2. 启动 Redis
 
 ```bash
-# MySQL 8：建库 ry-vue，导入
-backend/sql/ry_20260417.sql        # 若依基础表
-backend/sql/quartz.sql             # 定时任务表
-sql/tz_schema.sql                  # 业务表
-sql/tz_menu.sql                    # 菜单与权限
-sql/tz_knowledge_seed.sql          # 知识库初始 15 条
-sql/tz_kb_structure.sql            # 知识库加特征性表现/鉴别要点/典型图片三栏
-sql/tz_kb_expand.sql               # 知识库扩到 27 条
-
-# Redis：默认端口 6379，本项目开发环境用 16379
+redis-server --port 16379        # 本项目开发环境用 16379
 ```
+
+用默认 6379 的话，改 `backend/ruoyi-admin/src/main/resources/application.yml` 里的 redis 配置。
 
 ### 2. 配置本机参数（**仓库里没有真实口令**）
 
