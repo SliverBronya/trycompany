@@ -6,6 +6,53 @@
 
 ---
 
+## 下载
+
+### 方式一：直接下压缩包（不需要装 git）
+
+👉 **[点此下载 ZIP](https://github.com/SliverBronya/trycompany/archive/refs/heads/main.zip)**
+
+也可以打开仓库页面 → 绿色的 **Code** 按钮 → **Download ZIP**。
+（想下某个固定版本，见 [Releases](https://github.com/SliverBronya/trycompany/tags) 页。）
+
+### 方式二：克隆仓库
+
+```bash
+# HTTPS（公开仓库，不需要账号）
+git clone https://github.com/SliverBronya/trycompany.git
+
+# 或用 SSH（需要你自己的密钥已加到 GitHub）
+git clone git@github.com:SliverBronya/trycompany.git
+```
+
+> 如果 SSH 报 `Connection refused`，说明 22 端口不通，改走 GitHub 的 443 通道：
+> 在 `~/.ssh/config` 里加
+> ```
+> Host github.com
+>     HostName ssh.github.com
+>     Port 443
+>     User git
+> ```
+
+### ⚠️ 下载后有一件事必须先做，否则跑不起来
+
+仓库里**没有** `application-druid.yml`，也没有 `scripts/.secrets.local` ——
+它们含本机口令，按设计不进版本库。照模板复制一份即可（详见下方「快速开始」第 2 步）：
+
+```bash
+copy backend\ruoyi-admin\src\main\resources\application-druid.yml.example ^
+     backend\ruoyi-admin\src\main\resources\application-druid.yml
+copy scripts\.secrets.local.example scripts\.secrets.local
+```
+
+### 只想「看看效果」而不想装环境？
+
+那不用下载代码 —— 本项目的运行依赖有 MySQL 8 + Redis + JDK 17 + Node 20，
+装齐比看一次要费时得多。直接让作者给你一个演示地址打开即可（演示地址是临时的，
+需要时现开）。**注意**：演示站是公开可访问的，别在上面录入真实生产数据。
+
+---
+
 ## 它解决什么问题
 
 农技员巡田时看到病叶，回到办公室查书、翻资料、问人 —— 一趟下来半小时，结论还未必有出处。
