@@ -233,6 +233,13 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# 先 fetch 再设跟踪关系。
+#
+# 推送时用的是显式 URL/地址（为了不把 Token 写进 .git/config），所以本地不会
+# 自动生成 origin/<分支> 这个远程跟踪引用 —— 直接 set-upstream 会**静默失败**：
+# 现象是推成功了，但 git branch -vv 里看不到 [origin/main]，
+# 以后 git push / git pull 都得手打参数，而人很难想到是这一步没生效。
+git fetch origin 2>$null | Out-Null
 git branch --set-upstream-to="origin/$Branch" $Branch 2>$null | Out-Null
 
 # ---------------------------------------------------------------- 6. 汇总
