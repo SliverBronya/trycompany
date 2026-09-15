@@ -33,8 +33,32 @@ import uuid
 
 BASE = "http://127.0.0.1:18080"
 USERNAME = os.environ.get("TZ_USERNAME", "admin")
-# 与 test-api.py 同一个口子，口令改了不用回来改脚本
-PASSWORD = os.environ.get("TZ_PASSWORD", "wXsRUPApemfuyNt6")
+
+
+def _load_password():
+    """取 admin 口令：优先环境变量，其次 scripts/.secrets.local（该文件被 git 忽略）。
+
+    与 test-api.py 用同一套取法。为什么不写默认值：仓库是公开的，
+    口令落在代码里会随 fork 与复制一路传下去。
+    """
+    value = os.environ.get("TZ_PASSWORD")
+    if value:
+        return value
+    secret_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".secrets.local")
+    if os.path.isfile(secret_file):
+        with open(secret_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("TZ_PASSWORD="):
+                    return line.split("=", 1)[1].strip()
+    print("[错误] 没有取到 admin 口令，脚本无法登录。请任选一种方式提供：", file=sys.stderr)
+    print("       1) 设置环境变量：TZ_PASSWORD=你的口令", file=sys.stderr)
+    print("       2) 在 scripts/.secrets.local 写一行 TZ_PASSWORD=你的口令", file=sys.stderr)
+    print("          （照 scripts/.secrets.local.example 复制一份即可）", file=sys.stderr)
+    sys.exit(2)
+
+
+PASSWORD = _load_password()
 
 # 名字对齐 PRD 的演示流程（「七、演示流程」第 2 步：新建地块 柑橘示范园1号地）
 # 与开发任务清单第 7.2 条。演示时讲稿里念的名字和看板上出现的名字是同一个，

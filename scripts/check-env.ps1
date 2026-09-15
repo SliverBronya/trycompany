@@ -36,7 +36,21 @@ $MysqlPort    = 13306
 $RedisPort    = 16379
 $DbName       = "ry-vue"
 $DbUser       = "root"
-$DbPassword   = "Root@123456"
+
+# 数据库口令：优先环境变量，其次 scripts\.secrets.local（该文件被 git 忽略）。
+# 不写默认值是因为仓库是公开的 —— 口令落在脚本里会随 fork 与复制一路传下去。
+function Get-DbPassword {
+    if ($env:TZ_DB_PASSWORD) { return $env:TZ_DB_PASSWORD }
+    $secret = Join-Path $PSScriptRoot ".secrets.local"
+    if (Test-Path $secret) {
+        foreach ($line in [System.IO.File]::ReadAllLines($secret, [System.Text.Encoding]::UTF8)) {
+            if ($line -match '^\s*TZ_DB_PASSWORD\s*=\s*(.+)$') { return $Matches[1].Trim() }
+        }
+    }
+    return $null
+}
+
+$DbPassword = Get-DbPassword
 
 $script:Pass = 0
 $script:Fail = 0
@@ -69,6 +83,13 @@ function Test-Port($port) {
 # 和 2>&1 混在一起就会把查询结果污染成一个多行字符串。
 $script:SqlError = $null
 function Sql($query) {
+    # 没有口令就别往下走了：mysql 收到空的 --password= 会去读终端，
+    # 在非交互环境里表现为「卡住」，很难看出真正原因。
+    if (-not $DbPassword) {
+        $script:SqlError = "未取到数据库口令：请设置环境变量 TZ_DB_PASSWORD，" +
+                           "或在 scripts\.secrets.local 写一行 TZ_DB_PASSWORD=你的口令"
+        return $null
+    }
     # 用 --database 选库，下面的查询就都写裸表名。
     # 不这么做的话得写 `ry-vue`.tz_knowledge_base —— 库名里有连字符，不加反引号
     # MySQL 会把它当成 ry 减 vue.tz_knowledge_base，报语法错；而在 PowerShell 双引号

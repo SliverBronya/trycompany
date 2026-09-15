@@ -1,6 +1,6 @@
 -- common 角色(role_id=2) 权限收敛前的原始授权备份
 -- 生成时间：2026-09-13    备份原因：把该角色收敛为「普通用户：田诊助手全功能，无后台管理」
--- 还原方法：mysql -h127.0.0.1 -P13306 -uroot -pRoot@123456 -D ry-vue < 本文件
+-- 还原方法：mysql -h127.0.0.1 -P13306 -uroot -p<你的数据库口令> -D ry-vue < 本文件
 --          然后让 ry 重新登录（权限缓存在 Redis 的 LoginUser 里，不重新登录不生效）
 
 DELETE FROM sys_role_menu WHERE role_id = 2;

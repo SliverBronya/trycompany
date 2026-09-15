@@ -23,10 +23,34 @@ import urllib.request
 
 BASE = "http://127.0.0.1:18080"
 USERNAME = os.environ.get("TZ_USERNAME", "admin")
+
+
+def _load_password():
+    """取 admin 口令：优先环境变量，其次 scripts/.secrets.local（该文件被 git 忽略）。
+
+    为什么不把口令写成默认值：仓库是公开的。口令一旦落在代码里，
+    就会随着 fork 与复制一路传下去，而它对应的还是一个能打开的演示站。
+    真实口令放在 .secrets.local 里，本机照常能用，仓库里只有模板。
+    """
+    value = os.environ.get("TZ_PASSWORD")
+    if value:
+        return value
+    secret_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".secrets.local")
+    if os.path.isfile(secret_file):
+        with open(secret_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("TZ_PASSWORD="):
+                    return line.split("=", 1)[1].strip()
+    print("[错误] 没有取到 admin 口令，脚本无法登录。请任选一种方式提供：", file=sys.stderr)
+    print("       1) 设置环境变量：TZ_PASSWORD=你的口令", file=sys.stderr)
+    print("       2) 在 scripts/.secrets.local 写一行 TZ_PASSWORD=你的口令", file=sys.stderr)
+    print("          （照 scripts/.secrets.local.example 复制一份即可）", file=sys.stderr)
+    sys.exit(2)
+
+
 # 口令在挂公网之前改过一次（原来是 admin123，见 docs\操作手册.md）。
-# 留环境变量口子是为了下次改口令时不用回来改脚本：
-#     TZ_PASSWORD=新口令 python scripts/test-api.py
-PASSWORD = os.environ.get("TZ_PASSWORD", "wXsRUPApemfuyNt6")
+PASSWORD = _load_password()
 
 # 自测记录带的图片地址。
 #

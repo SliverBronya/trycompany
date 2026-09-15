@@ -25,7 +25,7 @@
 --
 -- 用法：
 --   C:\RuoYi\mysql-8.0\bin\mysql.exe --host=127.0.0.1 --port=13306 ^
---     --user=root --password=Root@123456 --database=ry-vue ^
+--     --user=root --password=<你的数据库口令> --database=ry-vue ^
 --     --default-character-set=utf8mb4 < sql\tz_photo_describe.sql
 -- ============================================================================
 
