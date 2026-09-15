@@ -194,9 +194,13 @@ if ($CreateRepo) {
     $pushUrl = "https://$($me.login):$token@github.com/$($me.login)/$Name.git"
 } else {
     Step "3. 使用已有仓库"
-    if ($remoteUrl -notmatch '^https://github\.com/.+/.+\.git$') {
+    # 同时接受 HTTPS 与 SSH 两种写法。
+    # 本机 22 端口出不去（Connection refused），SSH 实际走的是 ~/.ssh/config 里
+    # 配好的 GitHub 443 通道 —— 那是系统层的事，脚本只认地址格式。
+    if ($remoteUrl -notmatch '^(https://github\.com/.+/.+\.git|git@github\.com:.+/.+\.git)$') {
         Bad "仓库地址格式不对：$remoteUrl"
-        Info "应形如：https://github.com/用户名/仓库名.git"
+        Info "HTTPS 写法：https://github.com/用户名/仓库名.git"
+        Info "SSH   写法：git@github.com:用户名/仓库名.git"
         exit 1
     }
     Info "目标：$remoteUrl"
@@ -212,8 +216,11 @@ Info "origin = $remoteUrl（不含 Token，凭据不落盘）"
 
 # ---------------------------------------------------------------- 5. 推送
 Step "5. 推送"
-if (-not $CreateRepo) {
+if (-not $CreateRepo -and $pushUrl -like 'https://*') {
     Info "首次会弹出 GitHub 登录窗口 —— 注意用密码登不上去，要用 Token 或浏览器授权"
+}
+if ($pushUrl -like 'git@*') {
+    Info "走 SSH 推送（本机 22 端口不通时会按 ~/.ssh/config 里的 443 通道走）"
 }
 
 git push $pushUrl "HEAD:refs/heads/$Branch" 2>&1 | ForEach-Object { Info $_ }
