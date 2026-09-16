@@ -288,9 +288,68 @@ docs/                           操作手册、架构概览、AI 链路说明、
   没有本地植保站情报可依时不编数字。拿到当地病虫情报后按原文补。
 - 新增条目的「资料来源」标注为「通用技术资料（待本地核实）」，
   不写具体文件名 —— 编出来的出处比留白更危险。
-- 手机端是网页版，未打包成原生 App。
-- 多公司 / 部门 / 岗位的数据隔离**尚未实现**，方案见
-  `docs/多公司部门岗位权限方案.md`。
+- 手机端是网页版；可打包为 Android APK（工程在 `frontend/android`，APK 本体因体积
+  不入仓库，打包方式见 `田诊助手-APK说明.txt`）。
+- 跨公司统计（如平台看所有公司的汇总报表）只对超级管理员开放，
+  普通用户只能看本公司数据。
+
+---
+
+## 多公司 / 部门 / 岗位权限
+
+设计文档见 `docs/多公司部门岗位权限方案.md`。采用「一人一公司 + 免审核建公司 + 邀请码」。
+
+### 三个"不同"分别靠什么实现
+
+| 要求 | 机制 |
+|---|---|
+| 同公司只能看本公司数据 | 业务表 `company_id` + 查询按当前用户公司过滤（超管不过滤） |
+| 不同部门权限不同 | 复用若依 `sys_dept` 树 + `@DataScope`（原生能力） |
+| 不同岗位权限不同 | `sys_post` 绑不同 `sys_role` |
+
+`company_id` 指向 `tz_company`（等值过滤用），`dept_id` 指向 `sys_dept`（给若依的
+data_scope 顺着部门树往下算）。两者都要：只有 dept_id 则跨部门统计要递归查树；
+只有 company_id 则若依那套权限机制接不上。知识库与预置样张是平台级共享数据，**不隔离**。
+
+### 使用流程
+
+```
+注册 → 登录 → 「我的公司」页（未加入时的引导页）
+     ├── 有邀请码 → 输入 8 位码 → 查询确认是谁邀请的 → 加入
+     └── 没有码   → 创建新公司（免审核，创建者自动成为「公司管理员」）
+管理员：生成邀请码（默认 7 天有效 / 可用 1 次，可作废）→ 成员列表 → 移出成员
+```
+
+### 初始化（在 `init-db.ps1` 之后）
+
+```powershell
+mysql --host=127.0.0.1 --port=13306 -u root -p --default-character-set=utf8mb4 ry-vue -e "source sql/tz_company.sql"
+mysql --host=127.0.0.1 --port=13306 -u root -p --default-character-set=utf8mb4 ry-vue -e "source sql/tz_company_role.sql"
+```
+
+两个脚本都**可重复执行**（MySQL 没有 `ADD COLUMN IF NOT EXISTS`，用存储过程先查
+information_schema 再决定加不加）。`tz_company.sql` 会把存量数据回填到「默认公司」、
+现有用户全部归入——不做这步，老用户升级后会因为 `company_id` 为空而什么都看不到。
+
+### 越权回归
+
+`scripts/test-api.py` 覆盖了基本链路；公司隔离另有专门验证：
+不同公司账号交叉访问，第二家公司用户看到的地块/巡田/复查应全为 0。
+
+### 接口一览
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/tz/company` | 创建公司（免审核，创建者自动成为管理员） |
+| GET | `/tz/company/mine` | 我所属的公司（未加入返回空 data） |
+| GET | `/tz/company/members` | 成员列表（限本公司） |
+| DELETE | `/tz/company/members/{userId}` | 移出成员（限管理员；创建者与本人不可移） |
+| PUT | `/tz/company/members/{userId}/dept/{deptId}` | 改成员岗位 |
+| POST | `/tz/company/invites` | 生成邀请码（默认 7 天 / 1 次） |
+| GET | `/tz/company/invites` | 本公司邀请码列表 |
+| DELETE | `/tz/company/invites/{id}` | 作废 |
+| GET | `/tz/invite/{code}` | 邀请详情（**未登录可读**，白名单） |
+| POST | `/tz/invite/{code}/accept` | 接受邀请 |
 
 ---
 
