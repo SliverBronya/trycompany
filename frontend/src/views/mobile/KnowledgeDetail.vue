@@ -9,7 +9,7 @@
     <div v-if="loading" class="m-tip">加载中…</div>
 
     <div v-else class="m-section">
-      <img v-if="data.typicalImage" :src="resolve(data.typicalImage)" class="m-photo" alt="典型症状" />
+      <TzImage v-if="data.typicalImage" :url="data.typicalImage" class-name="m-photo" alt="典型症状" />
 
       <div class="m-block" v-if="data.keyFeatures">
         <div class="m-block-title">特征性表现</div>
@@ -59,7 +59,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getKnowledge } from '@/api/tianzhen/knowledge'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { resolveImageUrl as resolve } from '@/utils/tzImage'
+import TzImage from '@/components/TzImage/index.vue'
 
 const route = useRoute()
 const router = useRouter()

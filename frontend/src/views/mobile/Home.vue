@@ -52,6 +52,12 @@
     <el-drawer v-model="mineVisible" direction="rtl" size="72%">
       <template #header><b>我的</b></template>
       <div class="m-drawer-item" @click="go('/m/plots')">地块管理</div>
+      <div class="m-drawer-item" @click="go('/m/server')">
+        服务器设置
+        <span class="m-tag" :class="isCustom ? 'is-mid' : ''" style="float:right">
+          {{ isCustom ? '自定义' : '默认' }}
+        </span>
+      </div>
       <div class="m-drawer-item" @click="switchDesktop">切换到电脑版</div>
       <div class="m-drawer-item m-danger" @click="logout">退出登录</div>
     </el-drawer>
@@ -59,19 +65,21 @@
 </template>
 
 <script setup name="MHome">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { getDashboardStats } from '@/api/tianzhen/dashboard'
 import { listRecord } from '@/api/tianzhen/record'
 import { getAiConfig } from '@/api/tianzhen/ai'
 import { User, Camera, MapLocation } from '@element-plus/icons-vue'
+import { isCustomServer } from '@/utils/tzServer'
 
 const router = useRouter()
 const stats = ref({})
 const records = ref([])
 const loading = ref(false)
 const mineVisible = ref(false)
+const isCustom = ref(false)
 const modeText = ref('')
 
 const cards = ref([
@@ -111,6 +119,9 @@ function logout() {
     router.push('/logout')
   }).catch(() => {})
 }
+
+// 打开抽屉时现读一次：用户可能刚在「服务器设置」里改过地址
+watch(mineVisible, v => { if (v) isCustom.value = isCustomServer() })
 
 onMounted(async () => {
   loading.value = true

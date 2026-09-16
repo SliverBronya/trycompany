@@ -9,7 +9,7 @@
     <div v-if="loading" class="m-tip">加载中…</div>
 
     <template v-else>
-      <img v-if="record.imageUrl" :src="resolve(record.imageUrl)" class="m-photo" style="border-radius:0" />
+      <TzImage v-if="record.imageUrl" :url="record.imageUrl" class-name="m-photo" style="border-radius:0" />
 
       <div class="m-section">
         <div class="m-card">
@@ -69,6 +69,7 @@ import { diagnose } from '@/api/tianzhen/diagnosis'
 import { generateSuggestion } from '@/api/tianzhen/suggestion'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { resolveImageUrl as resolve } from '@/utils/tzImage'
+import TzImage from '@/components/TzImage/index.vue'
 
 const route = useRoute()
 const router = useRouter()

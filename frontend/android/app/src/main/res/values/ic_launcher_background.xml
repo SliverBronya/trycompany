@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 与生成图标时用的底色一致（品牌农业绿）。
+         adaptive icon 是「背景色 + 前景图」两层合成的，
+         这里和图标底色不一致会出现一圈突兀的白边。 -->
+    <color name="ic_launcher_background">#0F6E56</color>
+</resources>

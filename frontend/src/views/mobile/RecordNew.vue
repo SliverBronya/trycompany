@@ -11,7 +11,7 @@
       <div class="m-field">
         <div class="m-field-label">现场照片（必填）</div>
 
-        <img v-if="form.imageUrl" :src="resolve(form.imageUrl)" class="m-photo" alt="现场照片" />
+        <TzImage v-if="form.imageUrl" :url="form.imageUrl" class-name="m-photo" alt="现场照片" />
         <label v-else class="m-photo-picker">
           <el-icon :size="30"><Camera /></el-icon>
           <span>点击拍照</span>
@@ -98,6 +98,8 @@ import { addRecord, describeRecordImage } from '@/api/tianzhen/record'
 import { diagnose } from '@/api/tianzhen/diagnosis'
 import { ArrowLeft, Camera } from '@element-plus/icons-vue'
 import { resolveImageUrl as resolve } from '@/utils/tzImage'
+import { getServerBase, tunnelHeaders } from '@/utils/tzServer'
+import TzImage from '@/components/TzImage/index.vue'
 
 const router = useRouter()
 const fileRef = ref()
@@ -119,9 +121,10 @@ async function onPick(e) {
   try {
     const fd = new FormData()
     fd.append('file', file)
-    const res = await fetch(import.meta.env.VITE_APP_BASE_API + '/common/upload', {
+    const res = await fetch(getServerBase() + '/common/upload', {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + getToken() },
+      // 这个请求没走 axios 实例，得自己带上绕开 ngrok 警告页的头
+      headers: Object.assign({ Authorization: 'Bearer ' + getToken() }, tunnelHeaders()),
       body: fd
     }).then(r => r.json())
     if (res.code !== 200) throw new Error(res.msg || '上传失败')

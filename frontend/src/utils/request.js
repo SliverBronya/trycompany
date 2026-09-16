@@ -6,6 +6,7 @@ import { tansParams, blobValidate } from '@/utils/ruoyi'
 import cache from '@/plugins/cache'
 import { saveAs } from 'file-saver'
 import useUserStore from '@/store/modules/user'
+import { getServerBase, tunnelHeaders } from '@/utils/tzServer'
 
 let downloadLoadingInstance
 // 是否显示重新登录
@@ -15,13 +16,19 @@ axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 创建axios实例
 const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
-  baseURL: import.meta.env.VITE_APP_BASE_API,
+  baseURL: getServerBase(),
   // 超时
   timeout: 10000
 })
 
 // request拦截器
 service.interceptors.request.use(config => {
+  // 每个请求现读一次后端地址：用户在「服务器设置」里改完立刻生效，不用重启 APP。
+  // 只在创建实例时设一次的话，改完设置仍然打到旧地址，而现象是「改了没用」，
+  // 很难联想到是 axios 实例把地址缓存住了。
+  config.baseURL = getServerBase()
+  // 走 ngrok 隧道时绕开它的浏览器警告页（详见 tzServer.js 的注释）
+  Object.assign(config.headers, tunnelHeaders())
   // 是否需要设置 token
   const isToken = (config.headers || {}).isToken === false
   // 是否需要防止数据重复提交
@@ -111,14 +118,21 @@ service.interceptors.response.use(res => {
   error => {
     console.log('err' + error)
     let { message } = error
+    // 把「实际请求的地址」带进提示里。
+    //
+    // 原来只说一句「后端接口连接异常」，用户能做的只有猜 ——
+    // 而这个错可能来自：地址填错、APP 里地址没生效、服务没开、隧道挂了、
+    // 隧道把请求换成了警告页…… 现象完全一样。带上地址，一眼就能定位到是哪一层。
+    const base = (error.config && error.config.baseURL) || getServerBase()
+    const where = '（请求地址：' + base + '）'
     if (message == "Network Error") {
-      message = "后端接口连接异常"
+      message = "后端接口连接异常" + where
     } else if (message.includes("timeout")) {
-      message = "系统接口请求超时"
+      message = "系统接口请求超时" + where
     } else if (message.includes("Request failed with status code")) {
-      message = "系统接口" + message.slice(-3) + "异常"
+      message = "系统接口" + message.slice(-3) + "异常" + where
     }
-    ElMessage({ message: message, type: 'error', duration: 5 * 1000 })
+    ElMessage({ message: message, type: 'error', duration: 8 * 1000 })
     return Promise.reject(error)
   }
 )

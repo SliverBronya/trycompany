@@ -62,12 +62,12 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="缩略图" align="center" width="90">
         <template #default="scope">
-          <el-image
+          <!-- 用 TzImage 而不是 el-image 直连：经 ngrok 访问时 <img> 拿不到请求头，
+               会被隧道的警告页顶掉（详见组件里的注释） -->
+          <TzImage
             v-if="scope.row.imageUrl"
-            :src="resolveImageUrl(scope.row.imageUrl)"
-            :preview-src-list="[resolveImageUrl(scope.row.imageUrl)]"
-            preview-teleported
-            fit="cover"
+            :url="scope.row.imageUrl"
+            preview
             style="width: 48px; height: 48px; border-radius: 4px"
           />
           <span v-else class="tz-muted">无图</span>
@@ -410,6 +410,7 @@ import { generateSuggestion, getSuggestionResult } from "@/api/tianzhen/suggesti
 import { generateReport, getReportResult } from "@/api/tianzhen/report"
 import { getAiConfig } from "@/api/tianzhen/ai"
 import { resolveImageUrl as tzResolveImageUrl } from "@/utils/tzImage"
+import TzImage from '@/components/TzImage/index.vue'
 
 const { proxy } = getCurrentInstance()
 const { tz_plant_part, tz_severity, tz_risk_level, tz_record_status, tz_diagnosis_source } =

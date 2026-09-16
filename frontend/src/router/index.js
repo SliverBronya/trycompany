@@ -114,7 +114,10 @@ export const constantRoutes = [
       { path: 'tasks', component: () => import('@/views/mobile/Tasks'), name: 'MTasks', meta: { title: '复查' } },
       { path: 'knowledge', component: () => import('@/views/mobile/Knowledge'), name: 'MKnowledge', meta: { title: '知识库' } },
       { path: 'knowledge/:knowledgeId', component: () => import('@/views/mobile/KnowledgeDetail'), name: 'MKnowledgeDetail', meta: { title: '知识库详情' } },
-      { path: 'qa', component: () => import('@/views/mobile/Qa'), name: 'MQa', meta: { title: '农技问答' } }
+      { path: 'qa', component: () => import('@/views/mobile/Qa'), name: 'MQa', meta: { title: '农技问答' } },
+      // 后端地址必须能在 APP 里改：装到手机上时前端资源是本地的、没有同源可言，
+      // 地址写死就意味着一换网络就得重新打包 APK
+      { path: 'server', component: () => import('@/views/mobile/Server'), name: 'MServer', meta: { title: '服务器设置' } }
     ]
   }
 ]

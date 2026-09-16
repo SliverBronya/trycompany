@@ -76,12 +76,10 @@
       </el-table-column>
       <el-table-column label="典型图片" align="center" width="90">
         <template #default="scope">
-          <el-image
+          <TzImage
             v-if="scope.row.typicalImage"
-            :src="resolveImageUrl(scope.row.typicalImage)"
-            :preview-src-list="[resolveImageUrl(scope.row.typicalImage)]"
-            preview-teleported
-            fit="cover"
+            :url="scope.row.typicalImage"
+            preview
             style="width: 48px; height: 48px; border-radius: 4px"
           />
           <span v-else class="tz-muted">待补充</span>
@@ -254,12 +252,10 @@
           <pre class="tz-pre">{{ viewRow.differential || '（未填写）' }}</pre>
         </el-descriptions-item>
         <el-descriptions-item label="典型图片">
-          <el-image
+          <TzImage
             v-if="viewRow.typicalImage"
-            :src="resolveImageUrl(viewRow.typicalImage)"
-            :preview-src-list="[resolveImageUrl(viewRow.typicalImage)]"
-            preview-teleported
-            fit="contain"
+            :url="viewRow.typicalImage"
+            preview
             style="max-width: 100%; max-height: 260px; border-radius: 4px"
           />
           <span v-else class="tz-muted">暂无图片（正式使用前请补实拍照片）</span>
@@ -287,6 +283,7 @@
 <script setup name="TzKnowledge">
 import { listKnowledge, getKnowledge, delKnowledge, addKnowledge, updateKnowledge } from "@/api/tianzhen/knowledge"
 import { resolveImageUrl as tzResolveImageUrl } from "@/utils/tzImage"
+import TzImage from '@/components/TzImage/index.vue'
 
 const { proxy } = getCurrentInstance()
 const { tz_crop_type, tz_disease_category } = useDict("tz_crop_type", "tz_disease_category")

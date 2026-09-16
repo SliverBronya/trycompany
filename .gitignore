@@ -49,6 +49,24 @@ application-druid.yml
 # 脚本读取的本机口令（test-api.py / seed-demo.py / check-env.ps1）
 scripts/.secrets.local
 
+# ---------------------------------------------------------------- Android 打包
+# 签名口令与 SDK 路径都跟本机环境绑定，不能进版本库。
+# 密钥本体也不在项目里（放在 C:\RuoYi\android-keystore\），
+# 避免被打进交付压缩包。
+frontend/android/keystore.properties
+frontend/android/local.properties
+frontend/android/app/*.jks
+frontend/android/app/*.keystore
+*.jks
+*.keystore
+# Gradle 与 Android 构建产物
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/capacitor-cordova-android-plugins/build/
+frontend/android/app/src/main/assets/public/
+.gradle/
+
 # ---------------------------------------------------------------- 临时草稿
 # 宿主工具生成的中间产物目录（随机 hash 命名），不是项目代码
 draft_*/
