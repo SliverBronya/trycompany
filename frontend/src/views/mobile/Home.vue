@@ -52,6 +52,10 @@
     <el-drawer v-model="mineVisible" direction="rtl" size="72%">
       <template #header><b>我的</b></template>
       <div class="m-drawer-item" @click="go('/m/plots')">地块管理</div>
+      <div class="m-drawer-item" @click="go('/m/company')">
+        我的公司
+        <span v-if="!hasCompany" class="m-tag is-mid" style="float:right">未加入</span>
+      </div>
       <div class="m-drawer-item" @click="go('/m/server')">
         服务器设置
         <span class="m-tag" :class="isCustom ? 'is-mid' : ''" style="float:right">
@@ -73,6 +77,7 @@ import { listRecord } from '@/api/tianzhen/record'
 import { getAiConfig } from '@/api/tianzhen/ai'
 import { User, Camera, MapLocation } from '@element-plus/icons-vue'
 import { isCustomServer } from '@/utils/tzServer'
+import request from '@/utils/request'
 
 const router = useRouter()
 const stats = ref({})
@@ -80,6 +85,7 @@ const records = ref([])
 const loading = ref(false)
 const mineVisible = ref(false)
 const isCustom = ref(false)
+const hasCompany = ref(true)
 const modeText = ref('')
 
 const cards = ref([
@@ -121,7 +127,17 @@ function logout() {
 }
 
 // 打开抽屉时现读一次：用户可能刚在「服务器设置」里改过地址
-watch(mineVisible, v => { if (v) isCustom.value = isCustomServer() })
+watch(mineVisible, async v => {
+  if (!v) return
+  isCustom.value = isCustomServer()
+  try {
+    // 没公司的用户必须先走引导页，否则他能进来却什么都做不了，还以为是系统坏了
+    const res = await request({ url: '/tz/company/mine' })
+    hasCompany.value = !!(res.data && res.data.companyId)
+  } catch (e) {
+    hasCompany.value = false
+  }
+})
 
 onMounted(async () => {
   loading.value = true

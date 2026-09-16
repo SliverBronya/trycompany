@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzInviteMapper">
+
+    <resultMap type="TzInvite" id="TzInviteResult">
+        <result property="inviteId"       column="invite_id"       />
+        <result property="companyId"      column="company_id"      />
+        <result property="companyName"    column="company_name"    />
+        <result property="code"           column="code"            />
+        <result property="deptId"         column="dept_id"         />
+        <result property="postId"         column="post_id"         />
+        <result property="roleId"         column="role_id"         />
+        <result property="expireTime"     column="expire_time"     />
+        <result property="maxUses"        column="max_uses"        />
+        <result property="usedCount"      column="used_count"      />
+        <result property="status"         column="status"          />
+        <result property="inviteeUserId"  column="invitee_user_id" />
+        <result property="createBy"       column="create_by"       />
+        <result property="createTime"     column="create_time"     />
+    </resultMap>
+
+    <sql id="selectTzInviteVo">
+        select i.invite_id, i.company_id, i.code, i.dept_id, i.post_id, i.role_id,
+               i.expire_time, i.max_uses, i.used_count, i.status, i.invitee_user_id,
+               i.create_by, i.create_time,
+               c.company_name as company_name
+        from tz_invite i
+        left join tz_company c on c.company_id = i.company_id
+    </sql>
+
+    <select id="selectTzInviteById" parameterType="Long" resultMap="TzInviteResult">
+        <include refid="selectTzInviteVo"/>
+        where i.invite_id = #{inviteId}
+    </select>
+
+    <!-- 未登录可查：给"收到邀请码的人"展示是谁邀请他加入哪家 -->
+    <select id="selectTzInviteByCode" parameterType="String" resultMap="TzInviteResult">
+        <include refid="selectTzInviteVo"/>
+        where i.code = #{code} limit 1
+    </select>
+
+    <select id="selectTzInviteList" parameterType="TzInvite" resultMap="TzInviteResult">
+        <include refid="selectTzInviteVo"/>
+        <where>
+            <if test="companyId != null">
+                AND i.company_id = #{companyId}
+            </if>
+            <if test="status != null and status != ''">
+                AND i.status = #{status}
+            </if>
+        </where>
+        order by i.invite_id desc
+    </select>
+
+    <insert id="insertTzInvite" parameterType="TzInvite" useGeneratedKeys="true" keyProperty="inviteId">
+        insert into tz_invite (
+            company_id, code, dept_id, post_id, role_id, expire_time,
+            max_uses, used_count, status, create_by, create_time
+        )values(
+            #{companyId}, #{code}, #{deptId}, #{postId}, #{roleId}, #{expireTime},
+            #{maxUses}, 0, '0', #{createBy}, sysdate()
+        )
+    </insert>
+
+    <!-- 用掉一次：次数与状态一起更新，避免"查了再改"之间被人并发用掉 -->
+    <update id="consumeTzInvite">
+        update tz_invite
+        set used_count = used_count + 1,
+            status = case when used_count + 1 >= max_uses then '1' else status end,
+            invitee_user_id = #{userId}
+        where invite_id = #{inviteId}
+    </update>
+
+    <update id="cancelTzInvite" parameterType="Long">
+        update tz_invite set status = '2' where invite_id = #{inviteId}
+    </update>
+</mapper>

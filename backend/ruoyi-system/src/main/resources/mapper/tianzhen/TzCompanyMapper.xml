@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TzCompanyMapper">
+
+    <resultMap type="TzCompany" id="TzCompanyResult">
+        <result property="companyId"    column="company_id"    />
+        <result property="companyName"  column="company_name"  />
+        <result property="deptId"       column="dept_id"       />
+        <result property="contactName"  column="contact_name"  />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="scale"        column="scale"         />
+        <result property="address"      column="address"       />
+        <result property="ownerUserId"  column="owner_user_id" />
+        <result property="status"       column="status"        />
+        <result property="expireTime"   column="expire_time"   />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="remark"       column="remark"        />
+        <result property="memberCount"  column="member_count"  />
+    </resultMap>
+
+    <sql id="selectTzCompanyVo">
+        select c.company_id, c.company_name, c.dept_id, c.contact_name, c.contact_phone,
+               c.scale, c.address, c.owner_user_id, c.status, c.expire_time,
+               c.create_by, c.create_time, c.remark,
+               (select count(1) from sys_user u where u.company_id = c.company_id and u.del_flag = '0') as member_count
+        from tz_company c
+    </sql>
+
+    <select id="selectTzCompanyById" parameterType="Long" resultMap="TzCompanyResult">
+        <include refid="selectTzCompanyVo"/>
+        where c.company_id = #{companyId}
+    </select>
+
+    <!-- 公司名全局唯一（建表时也有唯一索引），判重在 Service 里做 -->
+    <select id="checkCompanyNameUnique" parameterType="String" resultMap="TzCompanyResult">
+        <include refid="selectTzCompanyVo"/>
+        where c.company_name = #{companyName} limit 1
+    </select>
+
+    <select id="selectTzCompanyByUserId" parameterType="Long" resultMap="TzCompanyResult">
+        <include refid="selectTzCompanyVo"/>
+        where c.company_id = (select u.company_id from sys_user u where u.user_id = #{userId})
+    </select>
+
+    <insert id="insertTzCompany" parameterType="TzCompany" useGeneratedKeys="true" keyProperty="companyId">
+        insert into tz_company (
+            company_name, dept_id, contact_name, contact_phone, scale, address,
+            owner_user_id, status, create_by, create_time, remark
+        )values(
+            #{companyName}, #{deptId}, #{contactName}, #{contactPhone}, #{scale}, #{address},
+            #{ownerUserId}, '0', #{createBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateTzCompany" parameterType="TzCompany">
+        update tz_company
+        <set>
+            <if test="companyName != null and companyName != ''">company_name = #{companyName}, </if>
+            <if test="contactName != null">contact_name = #{contactName}, </if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone}, </if>
+            <if test="scale != null">scale = #{scale}, </if>
+            <if test="address != null">address = #{address}, </if>
+            <if test="status != null and status != ''">status = #{status}, </if>
+            <if test="remark != null">remark = #{remark}, </if>
+            update_time = sysdate()
+        </set>
+        where company_id = #{companyId}
+    </update>
+
+    <!-- 成员列表：直接从 sys_user 取，一人一公司所以等值即可 -->
+    <select id="selectMembersByCompanyId" parameterType="Long" resultType="java.util.HashMap">
+        select u.user_id as userId, u.user_name as userName, u.nick_name as nickName,
+               u.phonenumber as phonenumber, u.company_id as companyId, u.dept_id as deptId,
+               d.dept_name as deptName, u.create_time as joinTime,
+               (select group_concat(r.role_name) from sys_user_role ur
+                  join sys_role r on r.role_id = ur.role_id
+                 where ur.user_id = u.user_id) as roles
+        from sys_user u
+        left join sys_dept d on d.dept_id = u.dept_id
+        where u.company_id = #{companyId} and u.del_flag = '0'
+        order by u.user_id
+    </select>
+
+    <!-- 移出成员 = 清掉归属（账号保留，重新走邀请流程即可再进） -->
+    <update id="clearUserCompany">
+        update sys_user set company_id = null, dept_id = null where user_id = #{userId}
+    </update>
+
+    <!-- 改成员岗位（换部门） -->
+    <update id="updateUserDept">
+        update sys_user set dept_id = #{deptId} where user_id = #{userId} and company_id = #{companyId}
+    </update>
+</mapper>
