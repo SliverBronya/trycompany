@@ -22,6 +22,15 @@ public class TzSupplyDemand extends BaseEntity
 
     /** 供求信息ID */
     private Long infoId;
+    /**
+     * 归属公司ID。
+     * 由 Service 在查询前按当前用户填好；超级管理员此项为 null，表示不过滤。
+     */
+    private Long companyId;
+
+    /** 归属部门ID（若依 @DataScope 用） */
+    private Long deptId;
+
 
     /** 信息类型（1供应 2求购） */
     @Excel(name = "信息类型", readConverterExp = "1=供应,2=求购")
@@ -83,6 +92,27 @@ public class TzSupplyDemand extends BaseEntity
     {
         this.infoId = infoId;
     }
+
+    public Long getCompanyId()
+    {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId)
+    {
+        this.companyId = companyId;
+    }
+
+    public Long getDeptId()
+    {
+        return deptId;
+    }
+
+    public void setDeptId(Long deptId)
+    {
+        this.deptId = deptId;
+    }
+
 
     public String getInfoType()
     {

@@ -26,11 +26,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <sql id="selectTzFollowUpTaskVo">
         select t.task_id, t.record_id, t.plot_id, t.task_title, t.due_date, t.status, t.note,
                t.finish_time, t.create_by, t.create_time, t.update_by, t.update_time, t.remark,
-               p.plot_name as plot_name, r.diagnosis_name as diagnosis_name
+               p.plot_name as plot_name, r.diagnosis_name as diagnosis_name, t.company_id, t.dept_id
         from tz_follow_up_task t
         left join tz_plot p on p.plot_id = t.plot_id
         left join tz_scouting_record r on r.record_id = t.record_id
     </sql>
+    <!--
+      公司隔离片段。companyId 由 Service 用 TzCompanyContext 填好：
+        · 普通用户 → 自己的 company_id，这里拼上等值条件
+        · 超级管理员 → null，条件跳过，看全量（与若依 data_scope=1 一致）
+        · 未加入公司 → NO_COMPANY(-1)，命中不到任何行，列表为空
+    -->
+    <sql id="companyScope">
+        <if test="companyId != null">
+            AND t.company_id = #{companyId}
+        </if>
+    </sql>
+
 
     <select id="selectTzFollowUpTaskById" parameterType="Long" resultMap="TzFollowUpTaskResult">
         <include refid="selectTzFollowUpTaskVo"/>
@@ -58,6 +70,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.endTime != null and params.endTime != ''">
                 AND t.due_date &lt;= #{params.endTime}
             </if>
+                    <include refid="companyScope"/>
         </where>
         order by
             case t.status when '0' then 0 when '2' then 1 else 2 end,
@@ -76,6 +89,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="finishTime != null">finish_time, </if>
             <if test="remark != null and remark != ''">remark, </if>
             <if test="createBy != null and createBy != ''">create_by, </if>
+            <if test="companyId != null">company_id, </if>
+            <if test="deptId != null">dept_id, </if>
             create_time
         )values(
             <if test="recordId != null">#{recordId}, </if>
@@ -87,6 +102,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="finishTime != null">#{finishTime}, </if>
             <if test="remark != null and remark != ''">#{remark}, </if>
             <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            <if test="companyId != null">#{companyId}, </if>
+            <if test="deptId != null">#{deptId}, </if>
             sysdate()
         )
     </insert>

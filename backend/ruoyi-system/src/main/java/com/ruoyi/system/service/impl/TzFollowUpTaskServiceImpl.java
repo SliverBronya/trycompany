@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.domain.TzFollowUpTask;
+import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.domain.TzScoutingRecord;
 import com.ruoyi.system.mapper.TzFollowUpTaskMapper;
 import com.ruoyi.system.service.ITzFollowUpTaskService;
@@ -26,6 +27,9 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
 
     @Autowired
     private TzFollowUpTaskMapper tzFollowUpTaskMapper;
+
+    @Autowired
+    private TzCompanyContext companyContext;
 
     @Autowired
     private ITzScoutingRecordService tzScoutingRecordService;
@@ -53,6 +57,7 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public List<TzFollowUpTask> selectTzFollowUpTaskList(TzFollowUpTask tzFollowUpTask)
     {
+        tzFollowUpTask.setCompanyId(companyContext.currentCompanyId());
         tzFollowUpTaskMapper.refreshOverdueTasks();
         return tzFollowUpTaskMapper.selectTzFollowUpTaskList(tzFollowUpTask);
     }
@@ -66,6 +71,8 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public int insertTzFollowUpTask(TzFollowUpTask tzFollowUpTask)
     {
+        tzFollowUpTask.setCompanyId(companyContext.currentCompanyId());
+        tzFollowUpTask.setDeptId(companyContext.currentDeptId());
         return tzFollowUpTaskMapper.insertTzFollowUpTask(tzFollowUpTask);
     }
 

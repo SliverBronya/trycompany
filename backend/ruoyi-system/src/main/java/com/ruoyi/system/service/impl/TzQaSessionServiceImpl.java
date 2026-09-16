@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.system.domain.TzQaSession;
+import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.mapper.TzQaMessageMapper;
 import com.ruoyi.system.mapper.TzQaSessionMapper;
 import com.ruoyi.system.service.ITzQaSessionService;
@@ -19,6 +20,9 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
 {
     @Autowired
     private TzQaSessionMapper tzQaSessionMapper;
+
+    @Autowired
+    private TzCompanyContext companyContext;
 
     @Autowired
     private TzQaMessageMapper tzQaMessageMapper;
@@ -44,6 +48,7 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Override
     public List<TzQaSession> selectTzQaSessionList(TzQaSession tzQaSession)
     {
+        tzQaSession.setCompanyId(companyContext.currentCompanyId());
         return tzQaSessionMapper.selectTzQaSessionList(tzQaSession);
     }
 
@@ -56,6 +61,8 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Override
     public int insertTzQaSession(TzQaSession tzQaSession)
     {
+        tzQaSession.setCompanyId(companyContext.currentCompanyId());
+        tzQaSession.setDeptId(companyContext.currentDeptId());
         return tzQaSessionMapper.insertTzQaSession(tzQaSession);
     }
 

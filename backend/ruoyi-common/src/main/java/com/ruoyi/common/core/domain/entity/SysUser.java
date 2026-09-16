@@ -32,6 +32,15 @@ public class SysUser extends BaseEntity
     @Excel(name = "部门编号", type = Type.IMPORT)
     private Long deptId;
 
+    /**
+     * 所属公司ID（一人一公司，所以直接挂在用户上，不用中间表）
+     *
+     * NULL 表示尚未加入任何公司 —— 此时该用户查不到任何业务数据，
+     * 由 TzCompanyContext 转成哨兵值 NO_COMPANY 保证查询结果为空，
+     * 而不是因为过滤条件缺失而看到全量。
+     */
+    private Long companyId;
+
     /** 用户账号 */
     @Excel(name = "登录名称")
     private String userName;
@@ -129,6 +138,16 @@ public class SysUser extends BaseEntity
     public void setDeptId(Long deptId)
     {
         this.deptId = deptId;
+    }
+
+    public Long getCompanyId()
+    {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId)
+    {
+        this.companyId = companyId;
     }
 
     @Xss(message = "用户昵称不能包含脚本字符")

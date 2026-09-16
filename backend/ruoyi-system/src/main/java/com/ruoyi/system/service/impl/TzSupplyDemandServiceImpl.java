@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.system.domain.TzSupplyDemand;
+import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.mapper.TzSupplyDemandMapper;
 import com.ruoyi.system.service.ITzSupplyDemandService;
 
@@ -28,6 +29,9 @@ public class TzSupplyDemandServiceImpl implements ITzSupplyDemandService
     @Autowired
     private TzSupplyDemandMapper tzSupplyDemandMapper;
 
+    @Autowired
+    private TzCompanyContext companyContext;
+
     /**
      * 查询供求信息
      *
@@ -49,6 +53,7 @@ public class TzSupplyDemandServiceImpl implements ITzSupplyDemandService
     @Override
     public List<TzSupplyDemand> selectTzSupplyDemandList(TzSupplyDemand tzSupplyDemand)
     {
+        tzSupplyDemand.setCompanyId(companyContext.currentCompanyId());
         return tzSupplyDemandMapper.selectTzSupplyDemandList(tzSupplyDemand);
     }
 
@@ -61,6 +66,8 @@ public class TzSupplyDemandServiceImpl implements ITzSupplyDemandService
     @Override
     public int insertTzSupplyDemand(TzSupplyDemand tzSupplyDemand)
     {
+        tzSupplyDemand.setCompanyId(companyContext.currentCompanyId());
+        tzSupplyDemand.setDeptId(companyContext.currentDeptId());
         return tzSupplyDemandMapper.insertTzSupplyDemand(tzSupplyDemand);
     }
 

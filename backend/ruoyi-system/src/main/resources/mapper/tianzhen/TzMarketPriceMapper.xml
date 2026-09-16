@@ -24,9 +24,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectTzMarketPriceVo">
         select price_id, crop_type, variety, price_type, region, price, price_unit, change_rate,
-               price_date, source, create_by, create_time, update_by, update_time, remark
+               price_date, source, create_by, create_time, update_by, update_time, remark, company_id, dept_id
         from tz_market_price
     </sql>
+    <!--
+      公司隔离片段。companyId 由 Service 用 TzCompanyContext 填好：
+        · 普通用户 → 自己的 company_id，这里拼上等值条件
+        · 超级管理员 → null，条件跳过，看全量（与若依 data_scope=1 一致）
+        · 未加入公司 → NO_COMPANY(-1)，命中不到任何行，列表为空
+    -->
+    <sql id="companyScope">
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
+    </sql>
+
 
     <select id="selectTzMarketPriceById" parameterType="Long" resultMap="TzMarketPriceResult">
         <include refid="selectTzMarketPriceVo"/>
@@ -54,6 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="source != null and source != ''">
                 AND source like concat('%', #{source}, '%')
             </if>
+                    <include refid="companyScope"/>
         </where>
         order by price_date desc, price_id desc
     </select>
@@ -71,6 +84,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="source != null and source != ''">source, </if>
             <if test="remark != null and remark != ''">remark, </if>
             <if test="createBy != null and createBy != ''">create_by, </if>
+            <if test="companyId != null">company_id, </if>
+            <if test="deptId != null">dept_id, </if>
             create_time
         )values(
             <if test="cropType != null and cropType != ''">#{cropType}, </if>
@@ -84,6 +99,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="source != null and source != ''">#{source}, </if>
             <if test="remark != null and remark != ''">#{remark}, </if>
             <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            <if test="companyId != null">#{companyId}, </if>
+            <if test="deptId != null">#{deptId}, </if>
             sysdate()
         )
     </insert>

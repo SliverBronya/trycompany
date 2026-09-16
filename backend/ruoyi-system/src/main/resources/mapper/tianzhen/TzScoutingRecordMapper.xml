@@ -37,7 +37,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <!-- 列表查询不取 report_text / suggestion 大字段，避免翻页时把长文本全捞回来 -->
     <sql id="selectTzScoutingRecordVo">
-        select r.record_id, r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
+        select r.record_id, r.company_id, r.dept_id,
+               r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
                r.symptom_text, r.severity, r.diagnosis_name, r.confidence, r.risk_level,
                r.diagnosis_basis, r.diagnosis_source, r.knowledge_id, r.suggestion_source,
                r.dosage_guard_hit, r.report_time, r.status,
@@ -46,9 +47,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         from tz_scouting_record r
         left join tz_plot p on p.plot_id = r.plot_id
     </sql>
+    <!--
+      公司隔离片段。companyId 由 Service 用 TzCompanyContext 填好：
+        · 普通用户 → 自己的 company_id，这里拼上等值条件
+        · 超级管理员 → null，条件跳过，看全量（与若依 data_scope=1 一致）
+        · 未加入公司 → NO_COMPANY(-1)，命中不到任何行，列表为空
+    -->
+    <sql id="companyScope">
+        <if test="companyId != null">
+            AND r.company_id = #{companyId}
+        </if>
+    </sql>
+
 
     <select id="selectTzScoutingRecordById" parameterType="Long" resultMap="TzScoutingRecordResult">
-        select r.record_id, r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
+        select r.record_id, r.company_id, r.dept_id,
+               r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
                r.symptom_text, r.severity, r.diagnosis_name, r.confidence, r.risk_level,
                r.diagnosis_basis, r.diagnosis_source, r.knowledge_id, r.suggestion, r.suggestion_source,
                r.dosage_guard_hit, r.report_text, r.report_time, r.status,
@@ -92,6 +106,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.endTime != null and params.endTime != ''">
                 AND r.scout_time &lt;= concat(#{params.endTime}, ' 23:59:59')
             </if>
+                    <include refid="companyScope"/>
         </where>
         order by r.record_id desc
     </select>
@@ -119,6 +134,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">status, </if>
             <if test="remark != null and remark != ''">remark, </if>
             <if test="createBy != null and createBy != ''">create_by, </if>
+            <if test="companyId != null">company_id, </if>
+            <if test="deptId != null">dept_id, </if>
             create_time
         )values(
             <if test="plotId != null">#{plotId}, </if>
@@ -142,6 +159,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">#{status}, </if>
             <if test="remark != null and remark != ''">#{remark}, </if>
             <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            <if test="companyId != null">#{companyId}, </if>
+            <if test="deptId != null">#{deptId}, </if>
             sysdate()
         )
     </insert>

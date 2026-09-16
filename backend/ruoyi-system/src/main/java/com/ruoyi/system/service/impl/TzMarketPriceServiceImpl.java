@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.domain.TzMarketPrice;
+import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.mapper.TzMarketPriceMapper;
 import com.ruoyi.system.service.ITzMarketPriceService;
 
@@ -17,6 +18,9 @@ public class TzMarketPriceServiceImpl implements ITzMarketPriceService
 {
     @Autowired
     private TzMarketPriceMapper tzMarketPriceMapper;
+
+    @Autowired
+    private TzCompanyContext companyContext;
 
     /**
      * 查询行情信息
@@ -39,6 +43,7 @@ public class TzMarketPriceServiceImpl implements ITzMarketPriceService
     @Override
     public List<TzMarketPrice> selectTzMarketPriceList(TzMarketPrice tzMarketPrice)
     {
+        tzMarketPrice.setCompanyId(companyContext.currentCompanyId());
         return tzMarketPriceMapper.selectTzMarketPriceList(tzMarketPrice);
     }
 
@@ -51,6 +56,8 @@ public class TzMarketPriceServiceImpl implements ITzMarketPriceService
     @Override
     public int insertTzMarketPrice(TzMarketPrice tzMarketPrice)
     {
+        tzMarketPrice.setCompanyId(companyContext.currentCompanyId());
+        tzMarketPrice.setDeptId(companyContext.currentDeptId());
         return tzMarketPriceMapper.insertTzMarketPrice(tzMarketPrice);
     }
 

@@ -27,6 +27,15 @@ public class TzScoutingRecord extends BaseEntity
 
     /** 巡田记录ID */
     private Long recordId;
+    /**
+     * 归属公司ID。
+     * 由 Service 在查询前按当前用户填好；超级管理员此项为 null，表示不过滤。
+     */
+    private Long companyId;
+
+    /** 归属部门ID（若依 @DataScope 用） */
+    private Long deptId;
+
 
     /** 地块ID */
     private Long plotId;
@@ -117,6 +126,27 @@ public class TzScoutingRecord extends BaseEntity
     {
         this.recordId = recordId;
     }
+
+    public Long getCompanyId()
+    {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId)
+    {
+        this.companyId = companyId;
+    }
+
+    public Long getDeptId()
+    {
+        return deptId;
+    }
+
+    public void setDeptId(Long deptId)
+    {
+        this.deptId = deptId;
+    }
+
 
     @NotNull(message = "地块不能为空")
     public Long getPlotId()

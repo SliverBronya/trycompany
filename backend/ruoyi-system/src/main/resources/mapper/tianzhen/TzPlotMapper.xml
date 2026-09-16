@@ -6,6 +6,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <resultMap type="TzPlot" id="TzPlotResult">
         <result property="plotId"       column="plot_id"       />
+        <result property="companyId"    column="company_id"    />
+        <result property="deptId"       column="dept_id"       />
         <result property="plotName"     column="plot_name"     />
         <result property="cropType"     column="crop_type"     />
         <result property="area"         column="area"          />
@@ -21,9 +23,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectTzPlotVo">
-        select plot_id, plot_name, crop_type, area, location, owner_name, plant_year, status,
+        select plot_id, company_id, dept_id, plot_name, crop_type, area, location, owner_name, plant_year, status,
                create_by, create_time, update_by, update_time, remark
         from tz_plot
+    </sql>
+
+    <!--
+      公司隔离片段。companyId 由 Service 用 TzCompanyContext 填好：
+        · 普通用户 → 自己的 company_id，这里拼上等值条件
+        · 超级管理员 → null，条件跳过，看全量（与若依 data_scope=1 一致）
+        · 未加入公司 → NO_COMPANY(-1)，命中不到任何行，列表为空
+      所有涉及本表的查询都必须带上它，漏一处就是越权。
+    -->
+    <sql id="companyScope">
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </sql>
 
     <select id="selectTzPlotById" parameterType="Long" resultMap="TzPlotResult">
@@ -49,6 +64,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">
                 AND status = #{status}
             </if>
+            <include refid="companyScope"/>
         </where>
         order by plot_id desc
     </select>
@@ -64,6 +80,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">status, </if>
             <if test="remark != null and remark != ''">remark, </if>
             <if test="createBy != null and createBy != ''">create_by, </if>
+            <if test="companyId != null">company_id, </if>
+            <if test="deptId != null">dept_id, </if>
             create_time
         )values(
             <if test="plotName != null and plotName != ''">#{plotName}, </if>
@@ -75,6 +93,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">#{status}, </if>
             <if test="remark != null and remark != ''">#{remark}, </if>
             <if test="createBy != null and createBy != ''">#{createBy}, </if>
+            <if test="companyId != null">#{companyId}, </if>
+            <if test="deptId != null">#{deptId}, </if>
             sysdate()
         )
     </insert>
@@ -94,17 +114,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         </set>
         where plot_id = #{plotId}
+        <!-- 越权防护：公司不匹配时这条 update 影响 0 行，调用方会报「修改失败」 -->
+        <include refid="companyScope"/>
     </update>
 
-    <delete id="deleteTzPlotById" parameterType="Long">
+    <delete id="deleteTzPlotById">
         delete from tz_plot where plot_id = #{plotId}
+        <include refid="companyScope"/>
     </delete>
 
-    <delete id="deleteTzPlotByIds" parameterType="Long">
+    <delete id="deleteTzPlotByIds">
         delete from tz_plot where plot_id in
-        <foreach item="plotId" collection="array" open="(" separator="," close=")">
+        <foreach item="plotId" collection="plotIds" open="(" separator="," close=")">
             #{plotId}
         </foreach>
+        <include refid="companyScope"/>
     </delete>
 
     <select id="countRecordByPlotId" parameterType="Long" resultType="int">
@@ -120,6 +144,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="cropType != null and cropType != ''">
                 AND crop_type = #{cropType}
             </if>
+            <include refid="companyScope"/>
         </where>
     </select>
 

@@ -23,6 +23,15 @@ public class TzFollowUpTask extends BaseEntity
 
     /** 复查任务ID */
     private Long taskId;
+    /**
+     * 归属公司ID。
+     * 由 Service 在查询前按当前用户填好；超级管理员此项为 null，表示不过滤。
+     */
+    private Long companyId;
+
+    /** 归属部门ID（若依 @DataScope 用） */
+    private Long deptId;
+
 
     /** 关联巡田记录ID */
     @NotNull(message = "关联巡田记录不能为空")
@@ -76,6 +85,27 @@ public class TzFollowUpTask extends BaseEntity
     {
         this.taskId = taskId;
     }
+
+    public Long getCompanyId()
+    {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId)
+    {
+        this.companyId = companyId;
+    }
+
+    public Long getDeptId()
+    {
+        return deptId;
+    }
+
+    public void setDeptId(Long deptId)
+    {
+        this.deptId = deptId;
+    }
+
 
     public Long getRecordId()
     {

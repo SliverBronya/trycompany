@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.TzPlot;
 
 /**
@@ -46,17 +47,19 @@ public interface TzPlotMapper
      * 删除地块
      *
      * @param plotId 地块ID
+     * @param companyId 公司作用域（超管传 null 表示不过滤；用于拦住跨公司删除）
      * @return 结果
      */
-    public int deleteTzPlotById(Long plotId);
+    public int deleteTzPlotById(@Param("plotId") Long plotId, @Param("companyId") Long companyId);
 
     /**
      * 批量删除地块
      *
      * @param plotIds 需要删除的地块ID
+     * @param companyId 公司作用域（超管传 null 表示不过滤）
      * @return 结果
      */
-    public int deleteTzPlotByIds(Long[] plotIds);
+    public int deleteTzPlotByIds(@Param("plotIds") Long[] plotIds, @Param("companyId") Long companyId);
 
     /**
      * 统计某地块下的巡田记录数（删除前校验，防止留下孤儿记录）

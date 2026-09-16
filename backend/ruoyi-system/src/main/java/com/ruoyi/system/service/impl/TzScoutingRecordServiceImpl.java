@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.system.ai.ImageHash;
 import com.ruoyi.system.domain.TzPlot;
+import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.domain.TzScoutingRecord;
 import com.ruoyi.system.mapper.TzFollowUpTaskMapper;
 import com.ruoyi.system.mapper.TzPlotMapper;
@@ -28,6 +29,9 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
 
     @Autowired
     private TzScoutingRecordMapper tzScoutingRecordMapper;
+
+    @Autowired
+    private TzCompanyContext companyContext;
 
     @Autowired
     private TzFollowUpTaskMapper tzFollowUpTaskMapper;
@@ -56,6 +60,7 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     @Override
     public List<TzScoutingRecord> selectTzScoutingRecordList(TzScoutingRecord tzScoutingRecord)
     {
+        tzScoutingRecord.setCompanyId(companyContext.currentCompanyId());
         return tzScoutingRecordMapper.selectTzScoutingRecordList(tzScoutingRecord);
     }
 
@@ -68,6 +73,8 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     @Override
     public int insertTzScoutingRecord(TzScoutingRecord tzScoutingRecord)
     {
+        tzScoutingRecord.setCompanyId(companyContext.currentCompanyId());
+        tzScoutingRecord.setDeptId(companyContext.currentDeptId());
         fillImageHash(tzScoutingRecord);
         return tzScoutingRecordMapper.insertTzScoutingRecord(tzScoutingRecord);
     }
