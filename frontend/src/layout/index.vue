@@ -98,6 +98,7 @@ function setLayout() {
   top: 0;
   right: 0;
   z-index: 9;
+  border-bottom: 1px solid var(--tz-line-soft);
   width: calc(100% - #{vars.$base-sidebar-width});
   transition: width 0.28s;
 }

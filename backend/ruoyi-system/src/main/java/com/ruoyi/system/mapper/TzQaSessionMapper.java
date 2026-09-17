@@ -17,7 +17,8 @@ public interface TzQaSessionMapper
      * @param sessionId 会话ID
      * @return 会话信息
      */
-    public TzQaSession selectTzQaSessionById(Long sessionId);
+    public TzQaSession selectTzQaSessionById(@Param("sessionId") Long sessionId,
+                                              @Param("companyId") Long companyId);
 
     /**
      * 查询会话列表
@@ -49,7 +50,8 @@ public interface TzQaSessionMapper
      * @param sessionId 会话ID
      * @return 结果
      */
-    public int deleteTzQaSessionById(Long sessionId);
+    public int deleteTzQaSessionById(@Param("sessionId") Long sessionId,
+                                     @Param("companyId") Long companyId);
 
     /**
      * 批量删除会话
@@ -57,7 +59,8 @@ public interface TzQaSessionMapper
      * @param sessionIds 需要删除的会话ID
      * @return 结果
      */
-    public int deleteTzQaSessionByIds(Long[] sessionIds);
+    public int deleteTzQaSessionByIds(@Param("sessionIds") Long[] sessionIds,
+                                      @Param("companyId") Long companyId);
 
     /**
      * 消息条数累加。

@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.TzFollowUpTask;
 
 /**
@@ -16,7 +17,8 @@ public interface TzFollowUpTaskMapper
      * @param taskId 复查任务ID
      * @return 复查任务
      */
-    public TzFollowUpTask selectTzFollowUpTaskById(Long taskId);
+    public TzFollowUpTask selectTzFollowUpTaskById(@Param("taskId") Long taskId,
+                                                    @Param("companyId") Long companyId);
 
     /**
      * 查询复查任务列表（含地块名称/诊断结果）
@@ -48,7 +50,8 @@ public interface TzFollowUpTaskMapper
      * @param taskId 复查任务ID
      * @return 结果
      */
-    public int deleteTzFollowUpTaskById(Long taskId);
+    public int deleteTzFollowUpTaskById(@Param("taskId") Long taskId,
+                                        @Param("companyId") Long companyId);
 
     /**
      * 批量删除复查任务
@@ -56,7 +59,8 @@ public interface TzFollowUpTaskMapper
      * @param taskIds 需要删除的复查任务ID
      * @return 结果
      */
-    public int deleteTzFollowUpTaskByIds(Long[] taskIds);
+    public int deleteTzFollowUpTaskByIds(@Param("taskIds") Long[] taskIds,
+                                         @Param("companyId") Long companyId);
 
     /**
      * 按巡田记录删除其关联的复查任务（删记录时级联清理）
@@ -64,7 +68,8 @@ public interface TzFollowUpTaskMapper
      * @param recordIds 巡田记录ID数组
      * @return 结果
      */
-    public int deleteTzFollowUpTaskByRecordIds(Long[] recordIds);
+    public int deleteTzFollowUpTaskByRecordIds(@Param("recordIds") Long[] recordIds,
+                                               @Param("companyId") Long companyId);
 
     /**
      * 把已过截止日期且仍待复查的任务刷成「已逾期」
@@ -78,5 +83,5 @@ public interface TzFollowUpTaskMapper
      *
      * @return 数量
      */
-    public int countPendingTasks();
+    public int countPendingTasks(@Param("companyId") Long companyId);
 }

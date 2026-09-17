@@ -60,7 +60,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
 
-    <select id="selectTzScoutingRecordById" parameterType="Long" resultMap="TzScoutingRecordResult">
+    <select id="selectTzScoutingRecordById" resultMap="TzScoutingRecordResult">
         select r.record_id, r.company_id, r.dept_id,
                r.plot_id, r.scout_time, r.image_url, r.image_hash, r.plant_part,
                r.symptom_text, r.severity, r.diagnosis_name, r.confidence, r.risk_level,
@@ -71,6 +71,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         from tz_scouting_record r
         left join tz_plot p on p.plot_id = r.plot_id
         where r.record_id = #{recordId}
+        <if test="companyId != null">
+            AND r.company_id = #{companyId}
+        </if>
     </select>
 
     <select id="selectTzScoutingRecordList" parameterType="TzScoutingRecord" resultMap="TzScoutingRecordResult">
@@ -192,17 +195,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         </set>
         where record_id = #{recordId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </update>
 
-    <delete id="deleteTzScoutingRecordById" parameterType="Long">
+    <delete id="deleteTzScoutingRecordById">
         delete from tz_scouting_record where record_id = #{recordId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
-    <delete id="deleteTzScoutingRecordByIds" parameterType="Long">
+    <delete id="deleteTzScoutingRecordByIds">
         delete from tz_scouting_record where record_id in
-        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+        <foreach item="recordId" collection="recordIds" open="(" separator="," close=")">
             #{recordId}
         </foreach>
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
     <!-- ==================== 首页看板统计 ==================== -->
@@ -217,11 +229,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                sum(case when dosage_guard_hit = '1' then 1 else 0 end)           as dosageGuardHits,
                ifnull(round(avg(confidence), 1), 0)                              as avgConfidence
         from tz_scouting_record
+        <if test="companyId != null">
+            where company_id = #{companyId}
+        </if>
     </select>
 
     <select id="selectDiagnosisDistribution" resultType="java.util.HashMap">
         select ifnull(diagnosis_name, '未诊断') as `name`, count(1) as `value`
         from tz_scouting_record
+        <if test="companyId != null">
+            where company_id = #{companyId}
+        </if>
         group by diagnosis_name
         order by `value` desc
         limit 10
@@ -236,6 +254,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                end as `name`,
                count(1) as `value`
         from tz_scouting_record
+        <if test="companyId != null">
+            where company_id = #{companyId}
+        </if>
         group by risk_level
         order by risk_level
     </select>
@@ -250,6 +271,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                end as `name`,
                count(1) as `value`
         from tz_scouting_record
+        <if test="companyId != null">
+            where company_id = #{companyId}
+        </if>
         group by diagnosis_source
         order by `value` desc
     </select>
@@ -259,6 +283,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         from tz_scouting_record
         where scout_time is not null
           and scout_time &gt;= date_sub(curdate(), interval #{days} day)
+        <if test="companyId != null">
+          and company_id = #{companyId}
+        </if>
         group by date_format(scout_time, '%m-%d')
         order by min(scout_time)
     </select>

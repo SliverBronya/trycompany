@@ -3,26 +3,40 @@
     <header class="m-hero">
       <div class="m-hero-top">
         <div>
-          <div class="m-hero-title">田诊助手</div>
+          <div class="m-brand-line"><TzBrandMark compact /><div class="m-hero-title">田诊助手</div></div>
           <div class="m-hero-sub">{{ modeText }}</div>
         </div>
-        <el-icon :size="20" @click="mineVisible = true"><User /></el-icon>
+        <button class="m-hero-profile" type="button" aria-label="打开个人菜单" @click="mineVisible = true">
+          <el-icon :size="20"><User /></el-icon>
+        </button>
       </div>
-      <div class="m-hero-actions">
-        <div class="m-hero-btn" @click="go('/m/record/new')">
-          <el-icon :size="24"><Camera /></el-icon>
-          <span>拍照巡田</span>
-        </div>
-        <div class="m-hero-btn" @click="go('/m/plots')">
-          <el-icon :size="24"><MapLocation /></el-icon>
-          <span>地块</span>
-        </div>
+      <button class="m-capture-action" type="button" @click="go('/m/record/new')">
+        <span class="m-capture-icon"><el-icon :size="22"><Camera /></el-icon></span>
+        <span><b>开始巡田</b><small>拍照、记录症状并生成处置依据</small></span>
+        <span class="m-capture-arrow">→</span>
+      </button>
+      <div class="m-hero-actions" aria-label="快捷入口">
+        <button class="m-hero-btn" type="button" @click="go('/m/plots')">
+          <el-icon :size="18"><MapLocation /></el-icon><span>查看地块</span>
+        </button>
+        <button class="m-hero-btn" type="button" @click="go('/m/tasks')">
+          <span>待办复查 {{ pick('pendingTaskCount') }}</span>
+        </button>
       </div>
     </header>
 
     <div class="m-section">
-      <div class="m-section-title">概览</div>
-      <div class="m-grid-3">
+      <div class="m-section-heading"><div><span>田间动态</span><strong>今天值得先处理的事</strong></div><button type="button" @click="go('/m/tasks')">查看复查</button></div>
+      <button class="m-priority-card" type="button" @click="go('/m/tasks')">
+        <span class="m-priority-mark" :class="pick('highRiskRecords') ? 'is-high' : ''"></span>
+        <span><b>{{ pick('highRiskRecords') ? '存在高风险记录，建议优先复查' : '当前没有高风险巡田记录' }}</b><small>待办复查 {{ pick('pendingTaskCount') }} 项 · 点击进入处理清单</small></span>
+        <span>›</span>
+      </button>
+    </div>
+
+    <div class="m-section">
+      <div class="m-section-heading"><div><span>工作概览</span><strong>本周期的田间数据</strong></div></div>
+      <div class="m-grid-3 m-stat-grid">
         <div class="m-stat" v-for="card in cards" :key="card.key">
           <div class="m-stat-value" :class="card.tone ? 'is-' + card.tone : ''">{{ card.value }}</div>
           <div class="m-stat-label">{{ card.label }}</div>
@@ -31,7 +45,7 @@
     </div>
 
     <div class="m-section">
-      <div class="m-section-title">最近巡田</div>
+      <div class="m-section-heading"><div><span>最近记录</span><strong>继续查看上一次巡田</strong></div><button type="button" @click="go('/m/records')">全部记录</button></div>
       <div v-if="loading" class="m-tip">加载中…</div>
       <div v-else-if="!records.length" class="m-tip">还没有巡田记录，点上方「拍照巡田」开始</div>
       <div
@@ -58,6 +72,7 @@
     <el-drawer v-model="mineVisible" direction="rtl" size="72%">
       <template #header><b>我的</b></template>
       <div class="m-drawer-item" @click="go('/m/plots')">地块管理</div>
+      <div class="m-drawer-item" @click="go('/m/knowledge')">植保知识库</div>
       <div class="m-drawer-item" @click="go('/m/company')">
         我的公司
         <span v-if="!hasCompany" class="m-tag is-mid" style="float:right">未加入</span>
@@ -85,6 +100,7 @@ import { User, Camera, MapLocation, Picture } from '@element-plus/icons-vue'
 import { isCustomServer } from '@/utils/tzServer'
 import request from '@/utils/request'
 import TzImage from '@/components/TzImage/index.vue'
+import TzBrandMark from '@/components/TzBrandMark/index.vue'
 
 const router = useRouter()
 const stats = ref({})

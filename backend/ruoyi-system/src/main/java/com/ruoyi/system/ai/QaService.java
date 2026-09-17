@@ -176,6 +176,10 @@ public class QaService
         {
             return new ArrayList<>();
         }
+        if (qaSessionService.selectTzQaSessionById(sessionId) == null)
+        {
+            throw new ServiceException("会话不存在或无权访问：" + sessionId);
+        }
         TzQaMessage query = new TzQaMessage();
         query.setSessionId(sessionId);
         return qaMessageService.selectTzQaMessageList(query);

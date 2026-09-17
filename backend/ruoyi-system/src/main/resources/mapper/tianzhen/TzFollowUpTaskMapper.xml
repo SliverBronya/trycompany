@@ -51,9 +51,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
 
-    <select id="selectTzFollowUpTaskById" parameterType="Long" resultMap="TzFollowUpTaskResult">
+    <select id="selectTzFollowUpTaskById" resultMap="TzFollowUpTaskResult">
         <include refid="selectTzFollowUpTaskVo"/>
         where t.task_id = #{taskId}
+        <if test="companyId != null">
+            AND t.company_id = #{companyId}
+        </if>
     </select>
 
     <select id="selectTzFollowUpTaskList" parameterType="TzFollowUpTask" resultMap="TzFollowUpTaskResult">
@@ -145,25 +148,37 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         </set>
         where task_id = #{taskId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </update>
 
-    <delete id="deleteTzFollowUpTaskById" parameterType="Long">
+    <delete id="deleteTzFollowUpTaskById">
         delete from tz_follow_up_task where task_id = #{taskId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
-    <delete id="deleteTzFollowUpTaskByIds" parameterType="Long">
+    <delete id="deleteTzFollowUpTaskByIds">
         delete from tz_follow_up_task where task_id in
-        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+        <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
             #{taskId}
         </foreach>
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
     <!-- 删除巡田记录时级联清理其复查任务 -->
-    <delete id="deleteTzFollowUpTaskByRecordIds" parameterType="Long">
+    <delete id="deleteTzFollowUpTaskByRecordIds">
         delete from tz_follow_up_task where record_id in
-        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+        <foreach item="recordId" collection="recordIds" open="(" separator="," close=")">
             #{recordId}
         </foreach>
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
     <!-- 把已过截止日期且仍待复查的任务刷成「已逾期」 -->
@@ -175,6 +190,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="countPendingTasks" resultType="int">
         select count(1) from tz_follow_up_task where status in ('0', '2')
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </select>
 
 </mapper>

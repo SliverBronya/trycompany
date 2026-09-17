@@ -11,7 +11,7 @@ _面向答辩与二次开发的技术说明。所有结论都对着代码写，�
 | 配置项 | 模型 | 能力 |
 |---|---|---|
 | `tz.ai.vision-model` | `glm-4.1v-thinking-flash` | 多模态，能读图 |
-| `tz.ai.text-model` | `glm-4-flash-250414` | 纯文本 |
+| `tz.ai.text-model` | `deepseek-flash`（DeepSeek V4.1-Flash） | 纯文本 |
 
 **调用点一共 5 处，它们是严格分工的：**
 
@@ -29,7 +29,8 @@ _面向答辩与二次开发的技术说明。所有结论都对着代码写，�
 - **图片是服务端读成字节、转 base64 data URL 内联发送的**，不是把 URL 给模型。
   因为上传的图存本地，外网模型根本访问不到 `http://127.0.0.1` 的地址。
   定位文件统一走 `UploadedImage.resolveToFile`（含越界校验，防止读上传目录之外的文件）。
-- **没有 API Key 时不报错、不阻塞**：`llmClient.isAvailable()` 为 false 时整条链路自动
+- **没有对应 API Key 时不报错、不阻塞**：视觉链路检查 `isVisionAvailable()`，文本链路检查
+  `isTextAvailable()`，缺 key 时自动
   退化为「预置样张映射 + 知识库检索」，功能完整可演示，界面会明确标出当前模式。
 - **调用失败不抛异常**：`OpenAiCompatLlmClient` 把失败一律转成 `LlmResponse.fail`，
   由上层决定走哪条降级路径。5xx/超时按 `max-retries` 重试；429 单独按

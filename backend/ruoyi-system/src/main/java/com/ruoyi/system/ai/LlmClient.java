@@ -17,6 +17,18 @@ public interface LlmClient
      */
     boolean isAvailable();
 
+    /** 视觉链路是否有可用的配置。默认实现兼容单路客户端。 */
+    default boolean isVisionAvailable()
+    {
+        return isAvailable();
+    }
+
+    /** 文本链路是否有可用的配置。默认实现兼容单路客户端。 */
+    default boolean isTextAvailable()
+    {
+        return isAvailable();
+    }
+
     /**
      * 服务商标识，用于日志与前端展示。
      */

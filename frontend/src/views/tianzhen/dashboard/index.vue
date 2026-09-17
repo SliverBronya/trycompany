@@ -1,34 +1,57 @@
 <template>
-  <div class="app-container">
-    <!-- 概览：一张卡里排 8 个指标，而不是 8 张等宽小卡片。
-         卡片一多就成了"卡片墙"——每个数字都要单独扫一遍，还得在 8 个圆角框之间跳。
-         排成一张带网格线的数据块才像台账，视线可以顺着行列走。 -->
-    <el-card shadow="never" class="tz-overview">
+  <div class="app-container tz-dashboard">
+    <section class="tz-command-panel">
+      <div class="tz-command-copy">
+        <p class="tz-command-kicker">田间工作台</p>
+        <h1>让每一次巡田<br />都有可追溯的判断。</h1>
+        <p>从照片、症状到复查记录，结论与处置依据始终在同一条证据链里。</p>
+        <div class="tz-command-actions">
+          <el-button type="primary" size="large" @click="go('/record')"><Camera />新建巡田</el-button>
+          <el-button size="large" @click="go('/followup')"><Clock />处理复查</el-button>
+        </div>
+      </div>
+      <div class="tz-command-brief">
+        <div class="tz-brief-title"><span class="tz-brief-dot" />今日优先处理</div>
+        <div class="tz-brief-row">
+          <span>待复查任务</span><strong>{{ pick('pendingTaskCount') }}</strong>
+        </div>
+        <div class="tz-brief-row is-risk">
+          <span>高风险记录</span><strong>{{ pick('highRiskRecords') }}</strong>
+        </div>
+        <button class="tz-brief-link" @click="go('/followup')">查看复查清单</button>
+      </div>
+    </section>
+
+    <section class="tz-overview tz-stagger">
+      <div class="tz-overview-head">
+        <h2>巡田概览</h2>
+        <span>数据随当前公司范围更新</span>
+      </div>
       <div class="tz-metric-grid">
         <div v-for="card in statCards" :key="card.key" class="tz-metric">
           <div class="tz-metric-value" :class="{ 'is-alert': card.alert }">{{ card.value }}</div>
           <div class="tz-metric-label">{{ card.label }}</div>
         </div>
       </div>
-    </el-card>
+    </section>
 
     <el-alert
-      v-if="aiConfig.mode === 'preset'"
+      v-if="!aiConfig.visionAvailable"
       type="warning"
       :closable="false"
       show-icon
       style="margin-bottom: 12px"
-      title="当前未配置大模型 API Key"
+      title="图片诊断当前使用本地兜底链路"
     >
       <template #default>
-        诊断走的是预置样张映射 + 知识库检索，功能完整可演示，但「AI 初诊」这一环并未真正调用大模型。
-        配好 Key 后无需改代码即可自动切换。
+        未命中预置样张时，照片诊断将走知识库检索；文本问答与报告仍可使用已配置的 DeepSeek。
+        需要图片理解时，再单独配置兼容图片输入的视觉模型 Key。
       </template>
     </el-alert>
 
-    <el-row :gutter="12" v-loading="loading">
+    <el-row :gutter="16" v-loading="loading" class="tz-chart-grid tz-stagger">
       <el-col :xs="24" :md="12" class="card-box">
-        <el-card shadow="hover">
+        <el-card shadow="never">
           <template #header>
             <PieChart class="tz-icon" /> <span>诊断结果分布</span>
           </template>
@@ -36,7 +59,7 @@
         </el-card>
       </el-col>
       <el-col :xs="24" :md="12" class="card-box">
-        <el-card shadow="hover">
+        <el-card shadow="never">
           <template #header>
             <Warning class="tz-icon" /> <span>风险等级分布</span>
           </template>
@@ -44,7 +67,7 @@
         </el-card>
       </el-col>
       <el-col :xs="24" :md="12" class="card-box">
-        <el-card shadow="hover">
+        <el-card shadow="never">
           <template #header>
             <Histogram class="tz-icon" /> <span>近 30 天巡田趋势</span>
           </template>
@@ -52,7 +75,7 @@
         </el-card>
       </el-col>
       <el-col :xs="24" :md="12" class="card-box">
-        <el-card shadow="hover">
+        <el-card shadow="never">
           <template #header>
             <Connection class="tz-icon" /> <span>结论来源占比</span>
           </template>
@@ -68,6 +91,9 @@ import * as echarts from 'echarts'
 import { getDashboardStats, getDashboardCharts } from '@/api/tianzhen/dashboard'
 import { getAiConfig } from '@/api/tianzhen/ai'
 import { TZ_CHART_COLORS, TZ_RISK_COLORS, chartTextStyle, emptyChartOption } from '@/utils/echartsTheme'
+import { Camera, Clock } from '@element-plus/icons-vue'
+
+const router = useRouter()
 
 /** ECharts 把文字和线条画在 canvas 上，读不到 CSS 变量，只能按当前模式取固定色值 */
 function isDark() {
@@ -113,6 +139,10 @@ const statCards = computed(() => [
 function pick(key) {
   const value = stats.value[key]
   return value === null || value === undefined ? 0 : value
+}
+
+function go(path) {
+  router.push(path)
 }
 
 /** 饼图通用配置：无数据时 ECharts 会画成空白，所以先兜一个占位 */
@@ -234,15 +264,39 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.tz-overview {
-  margin-bottom: 12px;
-
-  /* 让网格贴到卡片边缘，否则卡片自身的 18px 内边距会在网格外再套一圈白边，
-     看起来像"框里套框" */
-  :deep(.el-card__body) {
-    padding: 0;
-  }
+.tz-dashboard { max-width: 1500px; margin: 0 auto; }
+.tz-command-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(260px, .75fr);
+  gap: 28px;
+  padding: 34px 36px;
+  margin-bottom: 18px;
+  background: #234837;
+  border-radius: 18px;
+  color: #f4f7f3;
+  overflow: hidden;
+  position: relative;
 }
+.tz-command-panel::after { content: ''; position: absolute; width: 360px; height: 360px; border: 1px solid rgba(226, 239, 229, .13); border-radius: 50%; right: -130px; top: -190px; pointer-events: none; }
+.tz-command-copy { position: relative; z-index: 1; }
+.tz-command-kicker { margin: 0 0 12px; color: rgba(235, 244, 237, .66); font-size: 13px; letter-spacing: .08em; }
+.tz-command-copy h1 { margin: 0; color: #fff; font-size: clamp(28px, 3vw, 42px); line-height: 1.2; letter-spacing: -.04em; font-weight: 600; }
+.tz-command-copy > p:not(.tz-command-kicker) { max-width: 40em; margin: 16px 0 24px; color: rgba(235, 244, 237, .73); line-height: 1.8; font-size: 14px; }
+.tz-command-actions { display: flex; gap: 10px; }
+.tz-command-actions :deep(.el-button) { min-height: 42px; border-radius: 9px; }
+.tz-command-actions :deep(.el-button--primary) { background: #eef5ef; color: #244735; border-color: #eef5ef; box-shadow: none; }
+.tz-command-actions :deep(.el-button:not(.el-button--primary)) { background: transparent; color: #f4f7f3; border-color: rgba(238, 245, 239, .32); }
+.tz-command-brief { position: relative; z-index: 1; align-self: center; padding: 20px; border: 1px solid rgba(238,245,239,.14); background: rgba(255,255,255,.065); border-radius: 12px; backdrop-filter: blur(8px); }
+.tz-brief-title { display: flex; align-items: center; gap: 8px; color: rgba(244,247,243,.72); font-size: 13px; margin-bottom: 12px; }
+.tz-brief-dot { width: 7px; height: 7px; border-radius: 50%; background: #9dc5aa; box-shadow: 0 0 0 4px rgba(157,197,170,.12); }
+.tz-brief-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-top: 1px solid rgba(238,245,239,.13); color: rgba(244,247,243,.77); font-size: 13px; }
+.tz-brief-row strong { font-family: var(--tz-font-num); color: #fff; font-size: 26px; font-weight: 600; }
+.tz-brief-row.is-risk strong { color: #f0bdad; }
+.tz-brief-link { padding: 3px 0 0; background: none; border: 0; color: #bed6c3; font: inherit; font-size: 13px; cursor: pointer; }
+.tz-overview { margin-bottom: 18px; padding: 4px 0 0; background: var(--tz-surface); border: 1px solid var(--tz-line); border-radius: var(--tz-radius-lg); box-shadow: var(--tz-shadow-1); overflow: hidden; }
+.tz-overview-head { display: flex; align-items: baseline; justify-content: space-between; padding: 17px 20px 13px; }
+.tz-overview-head h2 { margin: 0; font-size: 15px; font-weight: 600; color: var(--tz-ink); }
+.tz-overview-head span { font-size: 12px; color: var(--tz-ink-3); }
 
 /* 网格线用 1px 的 gap 露出底色来实现，比给每格加 border 干净：
    不会出现相邻边框叠加导致的粗细不均 */
@@ -267,8 +321,14 @@ onBeforeUnmount(() => {
 }
 
 .tz-chart {
-  height: 320px;
+  height: 300px;
 }
+.tz-chart-grid :deep(.el-card) { height: 100%; }
+.tz-chart-grid :deep(.el-card__header) { padding: 15px 18px; }
+.tz-stagger { animation: tz-rise .55s ease both; }
+.tz-chart-grid.tz-stagger { animation-delay: .1s; }
+@keyframes tz-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .tz-stagger { animation: none; } }
 
 .tz-icon {
   width: 1em;
@@ -278,12 +338,17 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1100px) {
+  .tz-command-panel { grid-template-columns: 1fr; }
   .tz-metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
+  .tz-command-panel { padding: 26px 20px; border-radius: 14px; }
+  .tz-command-copy h1 { font-size: 28px; }
+  .tz-command-actions { flex-wrap: wrap; }
+  .tz-overview-head { align-items: flex-start; gap: 6px; flex-direction: column; }
   .tz-metric-grid {
     grid-template-columns: minmax(0, 1fr);
   }

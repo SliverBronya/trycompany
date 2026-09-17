@@ -2,11 +2,10 @@
   <div class="sidebar-logo-container" :class="{ 'collapse': collapse }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <img v-if="logo" :src="logo" class="sidebar-logo" />
-        <h1 v-else class="sidebar-title">{{ title }}</h1>
+        <TzBrandMark class="sidebar-logo" compact />
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <img v-if="logo" :src="logo" class="sidebar-logo" />
+        <TzBrandMark class="sidebar-logo" compact />
         <h1 class="sidebar-title">{{ title }}</h1>
       </router-link>
     </transition>
@@ -14,7 +13,7 @@
 </template>
 
 <script setup>
-import logo from '@/assets/logo/logo.png'
+import TzBrandMark from '@/components/TzBrandMark/index.vue'
 import useSettingsStore from '@/store/modules/settings'
 import variables from '@/assets/styles/variables.module.scss'
 
@@ -75,8 +74,8 @@ const getLogoTextColor = computed(() => {
     width: 100%;
 
     & .sidebar-logo {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       vertical-align: middle;
       margin-right: 12px;
     }

@@ -132,25 +132,21 @@ tz:
   ai:
     # 总开关。关掉则只走「预置映射 + 知识库检索」，功能完整、演示照常
     enabled: true
-    # 服务商标识，写进 tz_ai_call_log，用来分辨结果出自哪家
+    # 默认服务商/地址（兼容旧配置；新配置按视觉与文本分别指定）
     provider: zhipu
-    # OpenAI 兼容接口的基础地址（不含 /chat/completions）
-    #
-    # 【换服务商要改四项，不是一项】provider / base-url / vision-model / text-model
-    # 四者必须同一家：模型名是各家独有的，只改 base-url 一定 404。
-    #   智谱 GLM（当前）https://open.bigmodel.cn/api/paas/v4
-    #      免费：glm-4.6v-flash（视觉）/ glm-4.7-flash（文本）
-    #   阿里百炼        https://dashscope.aliyuncs.com/compatible-mode/v1
-    #      qwen-vl-plus / qwen-plus（新用户 50 万 token 限免，非永久免费）
-    #   火山方舟        https://ark.cn-beijing.volces.com/api/v3
-    #      豆包视觉模型（每模型 50 万 token 免费额度）
     base-url: https://open.bigmodel.cn/api/paas/v4
+    # 当前采用混合模型：视觉保留智谱，文本切换 DeepSeek V4.1-Flash。
+    # 两路必须分别配置 provider/base-url/model/key，不能只改模型名。
+    vision-provider: zhipu
+    vision-base-url: https://open.bigmodel.cn/api/paas/v4
+    text-provider: deepseek
+    text-base-url: https://api.deepseek.com
     # 【重要】不要把 key 明文写在这里。启动前设置环境变量 TZ_AI_API_KEY 即可。
     # 留空时系统自动降级为预置映射模式，前后端都会明确标出「当前未接入大模型」。
     api-key: ${TZ_AI_API_KEY:}
     # 视觉 / 文本模型可以各配一个 key，留空则自动回退到上面的 api-key。
-    # 当前两个模型共用同一个智谱 key，所以只填 TZ_AI_API_KEY 就够用；
-    # 拆开是为将来留口子：视觉与文本可能来自不同服务商，或同一家的两个额度。
+    # 视觉继续使用 TZ_AI_API_KEY；文本使用 TZ_AI_TEXT_API_KEY。
+    # 文本与视觉属于不同服务商时，不能把智谱 key 当成 DeepSeek key 使用。
     vision-api-key: ${TZ_AI_VISION_API_KEY:}
     text-api-key: ${TZ_AI_TEXT_API_KEY:}
     # 多模态模型（要能读图）。
@@ -165,11 +161,8 @@ tz:
     # 另：老的 glm-4v-flash 不收 base64（只吃公网图片 URL，会 400），且输出上限 1K token
     # 装不下四段式 JSON，不要用。
     vision-model: glm-4.1v-thinking-flash
-    # 纯文本模型（问答与报告润色）。
-    # 用 250414 这一代而不是更新的 glm-4.7-flash，是实测选的：同样打 10 次，
-    # glm-4.7-flash 只成功 2 次（均值 3.4 s），本模型 10 次全通（均值 0.8 s）——
-    # 免费档里最新最强的那个，也正是被抢得最狠的那个。glm-4.5-flash 已下线，别写回旧 id。
-    text-model: glm-4-flash-250414
+    # 纯文本模型（问答与报告润色）。DeepSeek 官方把 V4.1-Flash 的 API 名称定为 deepseek-flash。
+    text-model: deepseek-flash
     # 读图偏慢，超时给足，别用默认值
     connect-timeout-seconds: 10
     timeout-seconds: 90

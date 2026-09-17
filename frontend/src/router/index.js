@@ -1,4 +1,4 @@
-import { createWebHistory, createRouter } from 'vue-router'
+import { createWebHistory, createWebHashHistory, createRouter } from 'vue-router'
 /* Layout */
 import Layout from '@/layout'
 
@@ -198,7 +198,16 @@ export const dynamicRoutes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  /*
+    离线演示构建用 hash 模式。
+
+    原因：把站点打成单个 HTML、用 file:// 直接打开时没有 HTTP 服务器，
+    history 模式下的 /dashboard 会被浏览器当成磁盘路径去找，必然打不开。
+    hash 模式把路由放在 # 后面，浏览器不会拿它去解析文件，双击即可运行。
+
+    正常部署（走 Nginx / 开发服务器）仍然用 history，地址更干净。
+  */
+  history: import.meta.env.VITE_DEMO === 'true' ? createWebHashHistory() : createWebHistory(),
   routes: constantRoutes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

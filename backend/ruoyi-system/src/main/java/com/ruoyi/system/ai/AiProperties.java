@@ -26,6 +26,14 @@ public class AiProperties
     /** OpenAI 兼容接口的基础地址（不含 /chat/completions） */
     private String baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 
+    /** 视觉调用的服务商与地址；为空时回退到 provider/baseUrl */
+    private String visionProvider = "";
+    private String visionBaseUrl = "";
+
+    /** 文本调用的服务商与地址；为空时回退到 provider/baseUrl */
+    private String textProvider = "";
+    private String textBaseUrl = "";
+
     /** API Key，务必用环境变量注入，不要写死在配置里 */
     private String apiKey = "";
 
@@ -33,8 +41,8 @@ public class AiProperties
      * 视觉模型专用 Key，留空则回退到 {@link #apiKey}。
      *
      * 拆成两个是为将来留口子：视觉与文本可能来自不同服务商，或同一家的两个额度。
-     * 现在两者共用同一个智谱 key，所以只填 apiKey 也完全正常 —— 回退逻辑在
-     * {@link #resolveApiKey(boolean)} 里，不会因为少填一个就整条链路不可用。
+     * 两路可以共用一个 key，也可以分别配置 —— 回退逻辑在
+     * {@link #resolveApiKey(boolean)} 里。
      */
     private String visionApiKey = "";
 
@@ -60,7 +68,7 @@ public class AiProperties
      * 限流（HTTP 429）的额外重试次数。
      *
      * 与 maxRetries 分开，是因为两者代价差两个数量级：超时一次要等 90 秒，
-     * 而限流返回只要 200–500 毫秒。免费模型档（智谱 Flash 系列）实测大比例请求
+     * 而限流返回只要 200–500 毫秒。免费模型档实测大比例请求
      * 会被限流，不单独给它预算，等于把「模型结论」直接让给「知识库降级」。
      */
     private int rateLimitRetries = 4;
@@ -97,6 +105,24 @@ public class AiProperties
         return StringUtils.isNotBlank(specific) ? specific : apiKey;
     }
 
+    public String resolveProvider(boolean vision)
+    {
+        String specific = vision ? visionProvider : textProvider;
+        return StringUtils.isNotBlank(specific) ? specific : provider;
+    }
+
+    public String resolveChatUrl(boolean vision)
+    {
+        String specific = vision ? visionBaseUrl : textBaseUrl;
+        String base = StringUtils.isNotBlank(specific) ? specific : baseUrl;
+        base = StringUtils.defaultString(base).trim();
+        while (base.endsWith("/"))
+        {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/chat/completions";
+    }
+
     /**
      * 大模型调用是否可用：开关打开，且至少配了一个 key。
      */
@@ -111,17 +137,22 @@ public class AiProperties
                 || StringUtils.isNotBlank(textApiKey);
     }
 
+    public boolean isVisionAvailable()
+    {
+        return enabled && StringUtils.isNotBlank(resolveApiKey(true));
+    }
+
+    public boolean isTextAvailable()
+    {
+        return enabled && StringUtils.isNotBlank(resolveApiKey(false));
+    }
+
     /**
      * 拼出 chat/completions 的完整地址，容忍 baseUrl 结尾带不带斜杠。
      */
     public String resolveChatUrl()
     {
-        String base = StringUtils.defaultString(baseUrl).trim();
-        while (base.endsWith("/"))
-        {
-            base = base.substring(0, base.length() - 1);
-        }
-        return base + "/chat/completions";
+        return resolveChatUrl(false);
     }
 
     public boolean isEnabled()
@@ -153,6 +184,15 @@ public class AiProperties
     {
         this.baseUrl = baseUrl;
     }
+
+    public String getVisionProvider() { return visionProvider; }
+    public void setVisionProvider(String visionProvider) { this.visionProvider = visionProvider; }
+    public String getVisionBaseUrl() { return visionBaseUrl; }
+    public void setVisionBaseUrl(String visionBaseUrl) { this.visionBaseUrl = visionBaseUrl; }
+    public String getTextProvider() { return textProvider; }
+    public void setTextProvider(String textProvider) { this.textProvider = textProvider; }
+    public String getTextBaseUrl() { return textBaseUrl; }
+    public void setTextBaseUrl(String textBaseUrl) { this.textBaseUrl = textBaseUrl; }
 
     public String getApiKey()
     {

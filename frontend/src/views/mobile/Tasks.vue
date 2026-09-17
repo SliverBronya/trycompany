@@ -9,15 +9,15 @@
       <div v-for="t in list" :key="t.taskId" class="m-card">
         <div class="m-row">
           <span class="m-strong">{{ t.taskTitle || '复查任务' }}</span>
-          <span class="m-tag" :class="t.status === '2' ? 'is-ok' : 'is-mid'">
-            {{ t.status === '2' ? '已完成' : '待复查' }}
+          <span class="m-tag" :class="statusClass(t.status)">
+            {{ statusText(t.status) }}
           </span>
         </div>
         <div class="m-muted">地块：{{ t.plotName || '—' }}</div>
         <div class="m-muted">截止：{{ t.dueDate || '—' }}</div>
         <div class="m-muted" v-if="t.note">{{ t.note }}</div>
 
-        <div class="m-btn-row" v-if="t.status !== '2'">
+        <div class="m-btn-row" v-if="t.status !== '1'">
           <button class="m-btn is-plain" @click="finish(t)">标记完成</button>
         </div>
       </div>
@@ -45,12 +45,20 @@ async function load() {
 
 async function finish(t) {
   try {
-    await changeFollowupStatus({ taskId: t.taskId, status: '2' })
+    await changeFollowupStatus({ taskId: t.taskId, status: '1' })
     ElMessage.success('已标记完成')
     await load()
   } catch (e) {
     ElMessage.error('操作失败')
   }
+}
+
+function statusText(status) {
+  return { '0': '待复查', '1': '已复查', '2': '已逾期' }[String(status)] || '待确认'
+}
+
+function statusClass(status) {
+  return { '0': 'is-mid', '1': 'is-ok', '2': 'is-high' }[String(status)] || 'is-mid'
 }
 
 onMounted(load)

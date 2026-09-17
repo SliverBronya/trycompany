@@ -3,9 +3,8 @@
   自适应图标的背景层。
 
   Capacitor 生成的默认值是一整块青色 #26A69A 加一层 10dp 网格线，从建项目起
-  就没改过，所以 App 图标一直和网站不是一套视觉。现改为与全站主色
-  （assets/styles/tianzhen.scss 里的 tz-primary，#2f6b4f）一致的深墨绿，
-  并去掉网格装饰：网格在这里只是模板自带的填充物，不编码任何信息。
+  就没改过。现在品牌图本身是「白色卡片 + 绿色渐变图形」，所以背景层用纯白，
+  图形由 ic_launcher_foreground.png 提供 —— 两层合成后与应用图完全一致。
 
   注意：XML 注释里不能出现连续两个短横线，所以这里不写带前缀的变量名 ——
   之前就是因为在注释里写了带短横线前缀的变量名，导致 mergeReleaseResources 直接失败。
@@ -16,6 +15,6 @@
     android:viewportHeight="108"
     android:viewportWidth="108">
     <path
-        android:fillColor="#2F6B4F"
+        android:fillColor="#FFFFFF"
         android:pathData="M0,0h108v108h-108z" />
 </vector>

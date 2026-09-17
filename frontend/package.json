@@ -9,6 +9,7 @@
     "dev": "vite",
     "build:prod": "vite build",
     "build:stage": "vite build --mode staging",
+    "build:demo": "vite build --mode demo",
     "preview": "vite preview"
   },
   "repository": {
@@ -45,6 +46,7 @@
     "unplugin-vue-setup-extend-plus": "1.0.1",
     "vite": "6.4.1",
     "vite-plugin-compression": "0.5.1",
+    "vite-plugin-singlefile": "^2.3.3",
     "vite-plugin-svg-icons": "2.0.1"
   },
   "overrides": {

@@ -171,18 +171,18 @@ async function toggleTheme(event) {
 }
 
 .navbar {
-  height: 50px;
+  height: 64px;
   overflow: hidden;
   position: relative;
   background: var(--navbar-bg);
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   display: flex;
   align-items: center;
-  // padding: 0 8px;
+  padding: 0 28px 0 14px;
   box-sizing: border-box;
 
   .hamburger-container {
-    line-height: 46px;
+    line-height: 64px;
     height: 100%;
     cursor: pointer;
     transition: background 0.3s;
@@ -217,7 +217,7 @@ async function toggleTheme(event) {
 
   .right-menu {
     height: 100%;
-    line-height: 50px;
+    line-height: 64px;
     display: flex;
     align-items: center;
     margin-left: auto;
@@ -228,7 +228,7 @@ async function toggleTheme(event) {
 
     .right-menu-item {
       display: inline-block;
-      padding: 0 8px;
+      padding: 0 10px;
       height: 100%;
       font-size: 18px;
       color: #5a5e66;
@@ -258,28 +258,34 @@ async function toggleTheme(event) {
     }
 
     .avatar-container {
-      margin-right: 0px;
-      padding-right: 0px;
+      height: 44px;
+      margin: 0 0 0 12px;
+      padding: 0 12px 0 14px;
+      border-left: 1px solid var(--tz-line);
 
       .avatar-wrapper {
-        margin-top: 10px;
-        right: 8px;
-        position: relative;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
 
         .user-avatar {
           cursor: pointer;
-          width: 30px;
-          height: 30px;
-          margin-right: 8px;
+          width: 32px;
+          height: 32px;
+          margin: 0;
           border-radius: 50%;
         }
 
         .user-nickname{
-          position: relative;
-          left: 0px;
-          bottom: 10px;
-          font-size: 14px;
-          font-weight: bold;
+          position: static;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--tz-ink-2);
+          max-width: 132px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         i {

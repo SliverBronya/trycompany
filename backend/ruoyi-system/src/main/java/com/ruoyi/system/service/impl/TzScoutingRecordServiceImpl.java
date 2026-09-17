@@ -48,7 +48,7 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     @Override
     public TzScoutingRecord selectTzScoutingRecordById(Long recordId)
     {
-        return tzScoutingRecordMapper.selectTzScoutingRecordById(recordId);
+        return tzScoutingRecordMapper.selectTzScoutingRecordById(recordId, companyContext.currentCompanyId());
     }
 
     /**
@@ -116,6 +116,8 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
         // 没传 imageUrl 时 fillImageHash 不会动它，而 update 语句是动态拼接的，
         // 未赋值的列不会进 SQL，因此也不会把已有的哈希清空。
         fillImageHash(tzScoutingRecord);
+        // companyId 只能由当前登录上下文写入，不能信任前端传来的归属字段。
+        tzScoutingRecord.setCompanyId(companyContext.currentCompanyId());
         return tzScoutingRecordMapper.updateTzScoutingRecord(tzScoutingRecord);
     }
 
@@ -129,8 +131,9 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     @Transactional
     public int deleteTzScoutingRecordById(Long recordId)
     {
-        tzFollowUpTaskMapper.deleteTzFollowUpTaskByRecordIds(new Long[] { recordId });
-        return tzScoutingRecordMapper.deleteTzScoutingRecordById(recordId);
+        Long companyId = companyContext.currentCompanyId();
+        tzFollowUpTaskMapper.deleteTzFollowUpTaskByRecordIds(new Long[] { recordId }, companyId);
+        return tzScoutingRecordMapper.deleteTzScoutingRecordById(recordId, companyId);
     }
 
     /**
@@ -143,8 +146,9 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     @Transactional
     public int deleteTzScoutingRecordByIds(Long[] recordIds)
     {
-        tzFollowUpTaskMapper.deleteTzFollowUpTaskByRecordIds(recordIds);
-        return tzScoutingRecordMapper.deleteTzScoutingRecordByIds(recordIds);
+        Long companyId = companyContext.currentCompanyId();
+        tzFollowUpTaskMapper.deleteTzFollowUpTaskByRecordIds(recordIds, companyId);
+        return tzScoutingRecordMapper.deleteTzScoutingRecordByIds(recordIds, companyId);
     }
 
     /**
@@ -156,10 +160,13 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     public Map<String, Object> selectDashboardStats()
     {
         Map<String, Object> stats = new HashMap<>();
-        Map<String, Object> summary = tzScoutingRecordMapper.selectDashboardSummary();
+        Long companyId = companyContext.currentCompanyId();
+        Map<String, Object> summary = tzScoutingRecordMapper.selectDashboardSummary(companyId);
         stats.putAll(summary == null ? new HashMap<String, Object>() : summary);
-        stats.put("plotCount", tzPlotMapper.countTzPlot(new TzPlot()));
-        stats.put("pendingTaskCount", tzFollowUpTaskMapper.countPendingTasks());
+        TzPlot plotQuery = new TzPlot();
+        plotQuery.setCompanyId(companyId);
+        stats.put("plotCount", tzPlotMapper.countTzPlot(plotQuery));
+        stats.put("pendingTaskCount", tzFollowUpTaskMapper.countPendingTasks(companyId));
         return stats;
     }
 
@@ -172,10 +179,11 @@ public class TzScoutingRecordServiceImpl implements ITzScoutingRecordService
     public Map<String, Object> selectDashboardCharts()
     {
         Map<String, Object> charts = new HashMap<>();
-        charts.put("diagnosisDistribution", tzScoutingRecordMapper.selectDiagnosisDistribution());
-        charts.put("riskDistribution", tzScoutingRecordMapper.selectRiskDistribution());
-        charts.put("sourceDistribution", tzScoutingRecordMapper.selectSourceDistribution());
-        charts.put("scoutTrend", tzScoutingRecordMapper.selectScoutTrend(TREND_DAYS));
+        Long companyId = companyContext.currentCompanyId();
+        charts.put("diagnosisDistribution", tzScoutingRecordMapper.selectDiagnosisDistribution(companyId));
+        charts.put("riskDistribution", tzScoutingRecordMapper.selectRiskDistribution(companyId));
+        charts.put("sourceDistribution", tzScoutingRecordMapper.selectSourceDistribution(companyId));
+        charts.put("scoutTrend", tzScoutingRecordMapper.selectScoutTrend(TREND_DAYS, companyId));
         return charts;
     }
 }

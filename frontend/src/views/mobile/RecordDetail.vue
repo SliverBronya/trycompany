@@ -45,6 +45,27 @@
           </div>
         </div>
 
+        <div class="m-block" v-if="record.diagnosisName">
+          <div class="m-block-title">处置闭环</div>
+          <template v-if="followupLoading">
+            <div class="m-muted">正在读取复查安排…</div>
+          </template>
+          <template v-else-if="followups.length">
+            <div v-for="task in followups" :key="task.taskId" class="m-timeline-item">
+              <div class="m-strong">{{ taskStatusText(task.status) }}</div>
+              <div class="m-muted">{{ task.taskTitle }} · 截止 {{ task.dueDate || '待定' }}</div>
+              <div v-if="task.reviewResult" class="m-muted">复查结果：{{ reviewResultText(task.reviewResult) }}</div>
+            </div>
+            <button class="m-link-btn" @click="router.push('/m/tasks')">查看并完成复查</button>
+          </template>
+          <template v-else>
+            <div class="m-text">诊断和防治建议已留档。生成巡田报告后，系统会按风险自动安排复查。</div>
+            <button class="m-link-btn" :disabled="reporting" @click="runReport">
+              {{ reporting ? '正在生成并安排…' : '生成报告并安排复查' }}
+            </button>
+          </template>
+        </div>
+
         <div class="m-btn-row">
           <button class="m-btn" :disabled="diagnosing" @click="runDiagnose">
             {{ diagnosing ? '诊断中…' : (record.diagnosisName ? '重新诊断' : '开始诊断') }}
@@ -67,8 +88,9 @@ import { ElMessage } from 'element-plus'
 import { getRecord } from '@/api/tianzhen/record'
 import { diagnose } from '@/api/tianzhen/diagnosis'
 import { generateSuggestion } from '@/api/tianzhen/suggestion'
+import { generateReport } from '@/api/tianzhen/report'
+import { listFollowup } from '@/api/tianzhen/followup'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { resolveImageUrl as resolve } from '@/utils/tzImage'
 import TzImage from '@/components/TzImage/index.vue'
 
 const route = useRoute()
@@ -77,6 +99,9 @@ const record = ref({})
 const loading = ref(false)
 const diagnosing = ref(false)
 const suggesting = ref(false)
+const reporting = ref(false)
+const followupLoading = ref(false)
+const followups = ref([])
 const recordId = route.params.recordId
 
 function back() { router.back() }
@@ -89,14 +114,31 @@ function riskClass(level) {
 function sourceText(src) {
   return { preset: '预置样张映射', llm: '多模态大模型初诊', fallback: '知识库检索降级', manual: '人工录入' }[src] || src
 }
+function taskStatusText(status) {
+  return { '0': '待复查', '1': '已复查', '2': '已逾期' }[String(status)] || '待确认'
+}
+function reviewResultText(result) {
+  return { controlled: '已控制', shrinking: '好转', stable: '持平', worsening: '加重', unknown: '无法判断' }[result] || result
+}
 
 async function load() {
   loading.value = true
   try {
     const res = await getRecord(recordId)
     record.value = res.data || {}
+    await loadFollowups()
   } finally {
     loading.value = false
+  }
+}
+
+async function loadFollowups() {
+  followupLoading.value = true
+  try {
+    const res = await listFollowup({ recordId, pageNum: 1, pageSize: 10 })
+    followups.value = res.rows || []
+  } finally {
+    followupLoading.value = false
   }
 }
 
@@ -123,6 +165,19 @@ async function runSuggestion() {
     ElMessage.error((e && e.msg) || '建议生成失败')
   } finally {
     suggesting.value = false
+  }
+}
+
+async function runReport() {
+  reporting.value = true
+  try {
+    await generateReport(recordId, true)
+    await load()
+    ElMessage.success('报告已生成，复查安排已更新')
+  } catch (e) {
+    ElMessage.error((e && e.msg) || '报告生成失败')
+  } finally {
+    reporting.value = false
   }
 }
 

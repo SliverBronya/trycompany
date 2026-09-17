@@ -21,49 +21,49 @@
 
 :root {
   /* 品牌：深墨绿。取自柑橘叶背的沉绿色，不是科技蓝，也不是荧光绿 */
-  --tz-primary: #2f6b4f;
-  --tz-primary-deep: #24523d;
-  --tz-primary-soft: #e8f0ea;
-  --tz-primary-line: #c3d8cb;
+  --tz-primary: #315f4a;
+  --tz-primary-deep: #244735;
+  --tz-primary-soft: #e6eee8;
+  --tz-primary-line: #c6d8cb;
 
   /* 纸感层次：底 → 面 → 浮层 */
-  --tz-paper: #f6f4ee;
+  --tz-paper: #f5f5f0;
   --tz-surface: #ffffff;
-  --tz-surface-2: #fbfaf6;
-  --tz-surface-3: #f2efe7;
+  --tz-surface-2: #fafaf6;
+  --tz-surface-3: #eceee8;
 
   /* 墨色文字阶梯（带绿倾向的暖黑，比纯黑柔和） */
-  --tz-ink: #16302a;
-  --tz-ink-2: #3d4f47;
-  --tz-ink-3: #6f8078;
-  --tz-ink-4: #9aa8a1;
+  --tz-ink: #203229;
+  --tz-ink-2: #4b5b52;
+  --tz-ink-3: #728178;
+  --tz-ink-4: #a1aba4;
 
   /* 描边：暖灰，不用冷灰，否则和米白底打架 */
-  --tz-line: #e4e0d5;
-  --tz-line-soft: #efede5;
-  --tz-line-strong: #d3cec0;
+  --tz-line: #dfe6df;
+  --tz-line-soft: #ebf0eb;
+  --tz-line-strong: #ccd7cd;
 
   /* 语义色：风险等级。用土色系而非纯正红黄绿，避免刺眼、也更符合田间语境 */
-  --tz-risk-high: #b4453a;
-  --tz-risk-mid: #bd8330;
-  --tz-risk-low: #4e7c5b;
-  --tz-risk-high-bg: #fbeeec;
-  --tz-risk-mid-bg: #fbf3e6;
-  --tz-risk-low-bg: #ecf3ee;
+  --tz-risk-high: #a85d4b;
+  --tz-risk-mid: #a97c3e;
+  --tz-risk-low: #4c795a;
+  --tz-risk-high-bg: #f9eeeb;
+  --tz-risk-mid-bg: #f7f1e7;
+  --tz-risk-low-bg: #eaf2ec;
 
   /* 信息色 */
   --tz-info: #4a6f8a;
   --tz-info-bg: #eef3f6;
 
   /* 尺度 */
-  --tz-radius: 10px;
-  --tz-radius-sm: 6px;
-  --tz-radius-lg: 14px;
+  --tz-radius: 14px;
+  --tz-radius-sm: 9px;
+  --tz-radius-lg: 22px;
 
   /* 阴影：极轻。"浮起"靠的是色差，不是重投影 */
-  --tz-shadow-1: 0 1px 2px rgba(22, 48, 42, 0.05);
-  --tz-shadow-2: 0 2px 8px rgba(22, 48, 42, 0.07);
-  --tz-shadow-3: 0 8px 24px rgba(22, 48, 42, 0.10);
+  --tz-shadow-1: 0 1px 1px rgba(29, 48, 39, 0.035), 0 10px 30px rgba(29, 48, 39, 0.035);
+  --tz-shadow-2: 0 14px 34px rgba(29, 48, 39, 0.08);
+  --tz-shadow-3: 0 18px 46px rgba(29, 48, 39, 0.10);
 
   /* 排版：离线环境不加载 webfont，用系统字体栈，中文优先苹方/雅黑 */
   --tz-font: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Hiragino Sans GB",
@@ -191,7 +191,44 @@ body {
    ========================================================================== */
 
 .app-container {
-  padding: 18px 20px 28px;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 28px 32px 40px;
+}
+
+/*
+  这里刻意没有 padding-top。
+
+  早期版本加过 64px，本意是避让顶栏，但顶栏和标签栏并不浮动
+  （.app-main 本来就排在它们下方的正常流位置），结果变成所有页面
+  顶部都悬着一块空白。而且它还有连锁恶果：sticky 的吸附基准是
+  滚动容器的内容区顶部，这段 padding 会把首页吸顶导航的落点
+  往下顶 64px（当时在 index.vue 里用负 margin/top 各抵消了一次）。
+
+  内容与标签栏的间距由各页面自己的容器 padding 负责（见 .app-container）。
+*/
+
+
+.el-button { min-height: 36px; font-weight: 600; letter-spacing: 0.1px; }
+.el-input__wrapper,
+.el-select__wrapper {
+  min-height: 38px;
+  border-radius: var(--tz-radius-sm);
+  box-shadow: 0 0 0 1px var(--tz-line) inset !important;
+  background: var(--tz-surface);
+}
+.el-table {
+  --el-table-header-bg-color: var(--tz-surface-2);
+  --el-table-row-hover-bg-color: #f0f4ef;
+  border-radius: var(--tz-radius);
+  overflow: hidden;
+  border: 1px solid var(--tz-line);
+}
+.el-table th.el-table__cell { height: 48px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; color: var(--tz-ink-2); }
+.el-table td.el-table__cell { height: 58px; }
+@media (max-width: 992px) {
+  .app-main { padding-top: 50px; }
+  .app-container { padding: 18px 16px 28px; }
 }
 
 /* 统一的页头：标题 + 说明 + 右侧操作区。

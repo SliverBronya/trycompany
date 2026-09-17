@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.system.domain.TzFollowUpTask;
 import com.ruoyi.system.company.TzCompanyContext;
 import com.ruoyi.system.domain.TzScoutingRecord;
@@ -49,7 +50,7 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public TzFollowUpTask selectTzFollowUpTaskById(Long taskId)
     {
-        return tzFollowUpTaskMapper.selectTzFollowUpTaskById(taskId);
+        return tzFollowUpTaskMapper.selectTzFollowUpTaskById(taskId, companyContext.currentCompanyId());
     }
 
     /**
@@ -77,6 +78,13 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public int insertTzFollowUpTask(TzFollowUpTask tzFollowUpTask)
     {
+        TzScoutingRecord record = tzScoutingRecordService.selectTzScoutingRecordById(tzFollowUpTask.getRecordId());
+        if (record == null)
+        {
+            throw new ServiceException("关联的巡田记录不存在，或不属于当前公司。");
+        }
+        // 复查任务必须从已授权的巡田记录继承地块归属，防止手工请求伪造跨公司关系。
+        tzFollowUpTask.setPlotId(record.getPlotId());
         tzFollowUpTask.setCompanyId(companyContext.currentCompanyId());
         tzFollowUpTask.setDeptId(companyContext.currentDeptId());
         return tzFollowUpTaskMapper.insertTzFollowUpTask(tzFollowUpTask);
@@ -91,6 +99,7 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public int updateTzFollowUpTask(TzFollowUpTask tzFollowUpTask)
     {
+        tzFollowUpTask.setCompanyId(companyContext.currentCompanyId());
         return tzFollowUpTaskMapper.updateTzFollowUpTask(tzFollowUpTask);
     }
 
@@ -103,7 +112,7 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public int deleteTzFollowUpTaskById(Long taskId)
     {
-        return tzFollowUpTaskMapper.deleteTzFollowUpTaskById(taskId);
+        return tzFollowUpTaskMapper.deleteTzFollowUpTaskById(taskId, companyContext.currentCompanyId());
     }
 
     /**
@@ -115,7 +124,7 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
     @Override
     public int deleteTzFollowUpTaskByIds(Long[] taskIds)
     {
-        return tzFollowUpTaskMapper.deleteTzFollowUpTaskByIds(taskIds);
+        return tzFollowUpTaskMapper.deleteTzFollowUpTaskByIds(taskIds, companyContext.currentCompanyId());
     }
 
     /**
@@ -136,11 +145,13 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
             tzFollowUpTask.setFinishTime(new Date());
         }
 
+        tzFollowUpTask.setCompanyId(companyContext.currentCompanyId());
         int rows = tzFollowUpTaskMapper.updateTzFollowUpTask(tzFollowUpTask);
 
         if (rows > 0 && done)
         {
-            TzFollowUpTask saved = tzFollowUpTaskMapper.selectTzFollowUpTaskById(tzFollowUpTask.getTaskId());
+            TzFollowUpTask saved = tzFollowUpTaskMapper.selectTzFollowUpTaskById(
+                    tzFollowUpTask.getTaskId(), companyContext.currentCompanyId());
             if (saved != null && saved.getRecordId() != null)
             {
                 TzScoutingRecord update = new TzScoutingRecord();

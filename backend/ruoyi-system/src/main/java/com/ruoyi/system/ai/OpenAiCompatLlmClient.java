@@ -56,6 +56,18 @@ public class OpenAiCompatLlmClient implements LlmClient
     }
 
     @Override
+    public boolean isVisionAvailable()
+    {
+        return properties.isVisionAvailable();
+    }
+
+    @Override
+    public boolean isTextAvailable()
+    {
+        return properties.isTextAvailable();
+    }
+
+    @Override
     public String getProvider()
     {
         return properties.getProvider();
@@ -78,12 +90,19 @@ public class OpenAiCompatLlmClient implements LlmClient
     private LlmResponse doChat(String model, String systemPrompt, String userPrompt,
                                byte[] imageBytes, String mimeType)
     {
+        boolean visionCall = imageBytes != null && imageBytes.length > 0;
+        String provider = properties.resolveProvider(visionCall);
         String digest = digest(systemPrompt, userPrompt);
         long started = System.currentTimeMillis();
 
         if (!properties.isAvailable())
         {
-            return LlmResponse.fail("未配置大模型 API Key（tz.ai.api-key 为空）", properties.getProvider(), model,
+            return LlmResponse.fail("未配置大模型 API Key（tz.ai.api-key 为空）", provider, model,
+                    System.currentTimeMillis() - started, digest);
+        }
+        if (properties.resolveApiKey(visionCall).isBlank())
+        {
+            return LlmResponse.fail((visionCall ? "未配置视觉模型 API Key" : "未配置文本模型 API Key"), provider, model,
                     System.currentTimeMillis() - started, digest);
         }
 
@@ -99,8 +118,8 @@ public class OpenAiCompatLlmClient implements LlmClient
             attempt++;
             try
             {
-                String content = invoke(model, systemPrompt, userPrompt, imageBytes, mimeType);
-                return LlmResponse.ok(content, properties.getProvider(), model,
+                String content = invoke(model, systemPrompt, userPrompt, imageBytes, mimeType, visionCall);
+                return LlmResponse.ok(content, provider, model,
                         System.currentTimeMillis() - started, digest);
             }
             catch (NonRetryableException e)
@@ -150,19 +169,18 @@ public class OpenAiCompatLlmClient implements LlmClient
             }
         }
 
-        return LlmResponse.fail(lastError, properties.getProvider(), model,
+        return LlmResponse.fail(lastError, provider, model,
                 System.currentTimeMillis() - started, digest);
     }
 
     @SuppressWarnings("unchecked")
     private String invoke(String model, String systemPrompt, String userPrompt,
-                          byte[] imageBytes, String mimeType)
+                          byte[] imageBytes, String mimeType, boolean visionCall)
     {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         /* 按「本次是不是视觉调用」取 key：支持视觉/文本各配一个，
            只配了一个时 resolveApiKey 会自动回退，不会因此调不通 */
-        boolean visionCall = imageBytes != null && imageBytes.length > 0;
         headers.setBearerAuth(properties.resolveApiKey(visionCall));
 
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -171,7 +189,7 @@ public class OpenAiCompatLlmClient implements LlmClient
         payload.put("messages", buildMessages(systemPrompt, userPrompt, imageBytes, mimeType));
 
         ResponseEntity<Map> response = restTemplate.exchange(
-                properties.resolveChatUrl(), HttpMethod.POST,
+                properties.resolveChatUrl(visionCall), HttpMethod.POST,
                 new HttpEntity<>(payload, headers), Map.class);
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null)

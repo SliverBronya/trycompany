@@ -36,7 +36,7 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Override
     public TzQaSession selectTzQaSessionById(Long sessionId)
     {
-        return tzQaSessionMapper.selectTzQaSessionById(sessionId);
+        return tzQaSessionMapper.selectTzQaSessionById(sessionId, companyContext.currentCompanyId());
     }
 
     /**
@@ -75,6 +75,7 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Override
     public int updateTzQaSession(TzQaSession tzQaSession)
     {
+        tzQaSession.setCompanyId(companyContext.currentCompanyId());
         return tzQaSessionMapper.updateTzQaSession(tzQaSession);
     }
 
@@ -88,8 +89,13 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Transactional
     public int deleteTzQaSessionById(Long sessionId)
     {
+        Long companyId = companyContext.currentCompanyId();
+        if (tzQaSessionMapper.selectTzQaSessionById(sessionId, companyId) == null)
+        {
+            return 0;
+        }
         tzQaMessageMapper.deleteTzQaMessageBySessionId(sessionId);
-        return tzQaSessionMapper.deleteTzQaSessionById(sessionId);
+        return tzQaSessionMapper.deleteTzQaSessionById(sessionId, companyId);
     }
 
     /**
@@ -102,10 +108,11 @@ public class TzQaSessionServiceImpl implements ITzQaSessionService
     @Transactional
     public int deleteTzQaSessionByIds(Long[] sessionIds)
     {
+        int deleted = 0;
         for (Long sessionId : sessionIds)
         {
-            tzQaMessageMapper.deleteTzQaMessageBySessionId(sessionId);
+            deleted += deleteTzQaSessionById(sessionId);
         }
-        return tzQaSessionMapper.deleteTzQaSessionByIds(sessionIds);
+        return deleted;
     }
 }

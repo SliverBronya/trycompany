@@ -3,7 +3,7 @@
     <!-- 左：品牌区。放的是系统真实能力，不是营销话术 —— 登录页也是台账的封面 -->
     <section class="login-brand">
       <header class="brand-top">
-        <img src="@/assets/logo/logo.png" class="brand-logo" alt="" />
+        <TzBrandMark class="brand-logo" />
         <span class="brand-name">{{ title }}</span>
       </header>
 
@@ -99,6 +99,7 @@ import Cookies from "js-cookie"
 import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
 import defaultSettings from '@/settings'
+import TzBrandMark from '@/components/TzBrandMark/index.vue'
 
 const title = import.meta.env.VITE_APP_TITLE
 const footerContent = defaultSettings.footerContent
@@ -231,17 +232,32 @@ getCookie()
   padding: 46px 52px;
   background-color: #1c3a2d;
   color: #e9f0ea;
+  position: relative;
+  overflow: hidden;
+}
+.login-brand::after {
+  content: '';
+  position: absolute;
+  width: min(44vw, 580px);
+  height: min(44vw, 580px);
+  right: -23%;
+  bottom: -36%;
+  border: 1px solid rgba(220, 237, 224, 0.14);
+  border-radius: 46% 54% 58% 42%;
+  transform: rotate(-18deg);
+  pointer-events: none;
 }
 
 .brand-top {
   display: flex;
   align-items: center;
   gap: 11px;
+  position: relative;
+  z-index: 1;
 
   .brand-logo {
-    width: 34px;
-    height: 34px;
-    object-fit: contain;
+    width: 36px;
+    height: 36px;
   }
 
   .brand-name {
@@ -254,6 +270,8 @@ getCookie()
 
 .brand-mid {
   max-width: 46ch;
+  position: relative;
+  z-index: 1;
 }
 
 .brand-headline {
@@ -302,6 +320,8 @@ getCookie()
   line-height: 1.7;
   color: rgba(233, 240, 234, 0.58);
   max-width: 52ch;
+  position: relative;
+  z-index: 1;
 }
 
 /* ---------- 右：表单区 ---------- */
@@ -313,13 +333,15 @@ getCookie()
   align-items: center;
   justify-content: center;
   padding: 40px 32px;
-  background-color: var(--tz-paper);
+  background-color: var(--tz-surface-2);
 }
 
 .login-form {
   width: 100%;
   max-width: 372px;
 }
+.login-form :deep(.el-input__wrapper) { min-height: 48px; background: var(--tz-surface); }
+.login-form :deep(.el-button) { min-height: 46px; border-radius: 9px; }
 
 .form-title {
   margin: 0;
@@ -397,6 +419,24 @@ getCookie()
 
   .login-panel {
     flex: 1 1 auto;
+    max-width: none;
+    min-height: 100dvh;
+  }
+
+  .login-form {
+    max-width: 372px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .login-panel {
+    padding: 32px 24px;
+    align-items: stretch;
+  }
+
+  .login-form,
+  .el-login-footer {
+    max-width: none;
   }
 }
 

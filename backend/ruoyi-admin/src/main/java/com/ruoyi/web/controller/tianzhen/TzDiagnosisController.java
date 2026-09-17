@@ -74,17 +74,27 @@ public class TzDiagnosisController extends BaseController
     {
         Map<String, Object> data = new HashMap<>();
         data.put("llmAvailable", llmClient.isAvailable());
+        data.put("visionAvailable", aiProperties.isVisionAvailable());
+        data.put("textAvailable", aiProperties.isTextAvailable());
         data.put("enabled", aiProperties.isEnabled());
         data.put("provider", llmClient.getProvider());
+        data.put("visionProvider", aiProperties.resolveProvider(true));
+        data.put("textProvider", aiProperties.resolveProvider(false));
         data.put("visionModel", aiProperties.getVisionModel());
         data.put("textModel", aiProperties.getTextModel());
         data.put("minConfidence", aiProperties.getMinConfidence());
         data.put("ragTopN", aiProperties.getRagTopN());
         data.put("disclaimer", aiProperties.getDisclaimer());
-        data.put("mode", llmClient.isAvailable() ? "llm" : "preset");
-        data.put("modeText", llmClient.isAvailable()
-                ? "已接入大模型，未命中预置样张时调用多模态模型初诊"
-                : "未配置大模型 API Key，当前为预置映射 + 知识库检索模式");
+        boolean visionAvailable = llmClient.isVisionAvailable();
+        boolean textAvailable = llmClient.isTextAvailable();
+        // 文本和视觉是两条独立链路。此前只要 DeepSeek 文本 Key 可用，就把整套系统
+        // 标成“已接入多模态模型”，巡田图片实际走降级时用户完全看不出来。
+        data.put("mode", visionAvailable ? "vision-llm" : (textAvailable ? "text-llm" : "preset"));
+        data.put("modeText", visionAvailable
+                ? "图片诊断与文本问答均已接入大模型"
+                : (textAvailable
+                    ? "文本问答已接入 DeepSeek；图片诊断使用预置样张与知识库兜底"
+                    : "未配置大模型 API Key，当前为预置映射 + 知识库检索模式"));
         return success(data);
     }
 }

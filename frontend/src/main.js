@@ -29,6 +29,10 @@ import { useDict } from '@/utils/dict'
 import { getConfigKey } from "@/api/system/config"
 import { parseTime, resetForm, addDateRange, handleTree, selectDictLabel, selectDictLabels } from '@/utils/ruoyi'
 
+/* 离线演示模式的本地接口模拟。正式构建时 VITE_DEMO 为 undefined，
+   下面那句 if 会被构建工具判定为恒假并整段剔除。 */
+import { installMock } from './demo'
+
 // 分页组件
 import Pagination from '@/components/Pagination'
 // 自定义表格工具组件
@@ -43,6 +47,19 @@ import ImageUpload from "@/components/ImageUpload"
 import ImagePreview from "@/components/ImagePreview"
 // 字典标签组件
 import DictTag from '@/components/DictTag'
+
+/*
+  离线演示模式：装上本地接口模拟。
+
+  位置很关键，必须在这里 —— 再往下一点，permission.js 注册的路由守卫
+  已经在首次导航时去拉用户信息和菜单了，晚一步就会先打一次真请求、
+  拿到连接失败，然后跳登录页，看起来像"演示版打不开"。
+
+  正式构建时 VITE_DEMO 是 undefined，这个判断恒假，整段会被剔除。
+*/
+if (import.meta.env.VITE_DEMO === 'true') {
+  installMock()
+}
 
 const app = createApp(App)
 

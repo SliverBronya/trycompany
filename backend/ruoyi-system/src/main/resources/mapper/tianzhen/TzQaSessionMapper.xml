@@ -36,9 +36,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
 
-    <select id="selectTzQaSessionById" parameterType="Long" resultMap="TzQaSessionResult">
+    <select id="selectTzQaSessionById" resultMap="TzQaSessionResult">
         <include refid="selectTzQaSessionVo"/>
         where session_id = #{sessionId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </select>
 
     <select id="selectTzQaSessionList" parameterType="TzQaSession" resultMap="TzQaSessionResult">
@@ -100,17 +103,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         </set>
         where session_id = #{sessionId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </update>
 
-    <delete id="deleteTzQaSessionById" parameterType="Long">
+    <delete id="deleteTzQaSessionById">
         delete from tz_qa_session where session_id = #{sessionId}
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
-    <delete id="deleteTzQaSessionByIds" parameterType="Long">
+    <delete id="deleteTzQaSessionByIds">
         delete from tz_qa_session where session_id in
-        <foreach item="sessionId" collection="array" open="(" separator="," close=")">
+        <foreach item="sessionId" collection="sessionIds" open="(" separator="," close=")">
             #{sessionId}
         </foreach>
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
     </delete>
 
     <!-- 计数按「条」累加：一次提问落库两条消息（问 + 答），由写消息的那处传 1 条一次 -->

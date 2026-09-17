@@ -127,7 +127,7 @@ AI 生成的建议里凡出现用量数值，都被拿去和知识库 `medicine_
 | 后端 | Spring Boot 3.5.16 · JDK 17 · MyBatis · MySQL 8 · Redis |
 | 前端 | Vue 3 · Vite 6 · Element Plus · Pinia · ECharts |
 | 基座 | 若依 RuoYi-Vue 3.9.2 |
-| 大模型 | 视觉 `glm-4.1v-thinking-flash` · 文本 `glm-4-flash-250414`（OpenAI 兼容协议） |
+| 大模型 | 视觉 `glm-4.1v-thinking-flash` · 文本 `deepseek-flash`（OpenAI 兼容协议） |
 
 ---
 
@@ -200,13 +200,16 @@ copy scripts\.secrets.local.example scripts\.secrets.local
 大模型 Key **只走环境变量，从不落盘**：
 
 ```powershell
-$env:TZ_AI_API_KEY = "你的智谱 key"
+$env:TZ_AI_API_KEY = "你的视觉模型服务商 key"
+$env:TZ_AI_TEXT_API_KEY = "你的 DeepSeek key"
 ```
 
 不配的话系统自动退化为「预置样张映射 + 知识库检索」，功能完整可演示，
 界面会明确标出当前处于哪种模式。
 
-换服务商需要改四项：`provider` / `base-url` / `vision-model` / `text-model`。
+当前默认是视觉使用智谱、文本使用 DeepSeek V4.1-Flash。两路分别配置
+`vision-provider` / `vision-base-url` / `vision-model` 与
+`text-provider` / `text-base-url` / `text-model`；两家服务商需要分别配置对应的 API Key。
 
 ### 4. 构建与启动
 

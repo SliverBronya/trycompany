@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <mask id="slit">
+      <rect x="0" y="0" width="120" height="120" fill="#fff"/>
+      <g fill="#000">
+        <path d="M60 60 L56.8 12 L63.2 12 Z"/>
+        <path d="M60 60 L56.8 12 L63.2 12 Z" transform="rotate(120 60 60)"/>
+        <path d="M60 60 L56.8 12 L63.2 12 Z" transform="rotate(240 60 60)"/>
+      </g>
+    </mask>
+  </defs>
+  <circle cx="60" cy="60" r="48" fill="#2f6b4f" mask="url(#slit)"/>
+</svg>

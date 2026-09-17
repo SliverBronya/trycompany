@@ -6,7 +6,7 @@
     <nav class="tz-nav" :class="{ 'is-stuck': stuck }">
       <div class="tz-nav__inner">
         <span class="tz-nav__brand">
-          <span class="tz-nav__mark" aria-hidden="true"></span>
+          <TzBrandMark compact />
           田诊助手
         </span>
         <div class="tz-nav__links">
@@ -18,7 +18,7 @@
             >{{ item.label }}</a
           >
         </div>
-        <button type="button" class="tz-nav__cta" @click="go('/tz/record')">进入工作台</button>
+        <button type="button" class="tz-nav__cta" @click="go('/dashboard')">进入工作台</button>
       </div>
     </nav>
 
@@ -33,10 +33,10 @@
         可溯源的防治建议，并自动生成一份能归档的巡田报告与复查任务。
       </p>
       <div class="tz-hero__actions reveal">
-        <button type="button" class="tz-btn tz-btn--primary" @click="go('/tz/record')">
+        <button type="button" class="tz-btn tz-btn--primary" @click="go('/record')">
           进入巡田记录
         </button>
-        <button type="button" class="tz-btn tz-btn--ghost" @click="go('/tz/knowledge')">
+        <button type="button" class="tz-btn tz-btn--ghost" @click="go('/knowledge')">
           查看植保知识库
         </button>
       </div>
@@ -199,10 +199,10 @@
           知识库用量来自公开发布的植保资料，属推荐值而非法定值，对外使用前应由植保专业人员复核。
         </p>
         <div class="tz-footer__links">
-          <a href="#" @click.prevent="go('/tz/dashboard')">首页看板</a>
-          <a href="#" @click.prevent="go('/tz/plot')">地块管理</a>
-          <a href="#" @click.prevent="go('/tz/followup')">复查任务</a>
-          <a href="#" @click.prevent="go('/tz/knowledge')">植保知识库</a>
+          <a href="#" @click.prevent="go('/dashboard')">首页看板</a>
+          <a href="#" @click.prevent="go('/plot')">地块管理</a>
+          <a href="#" @click.prevent="go('/followup')">复查任务</a>
+          <a href="#" @click.prevent="go('/knowledge')">植保知识库</a>
         </div>
       </div>
     </footer>
@@ -210,6 +210,8 @@
 </template>
 
 <script setup name="Index">
+import TzBrandMark from '@/components/TzBrandMark'
+
 const router = useRouter()
 
 const sentinelRef = ref(null)
@@ -457,14 +459,6 @@ onBeforeUnmount(teardownObservers)
   font-weight: 500;
   letter-spacing: -0.01em;
   white-space: nowrap;
-}
-
-.tz-nav__mark {
-  width: 16px;
-  height: 16px;
-  border-radius: 50% 0 50% 50%;
-  background: linear-gradient(135deg, var(--green-bright), var(--green));
-  transform: rotate(45deg);
 }
 
 .tz-nav__links {
@@ -723,6 +717,13 @@ onBeforeUnmount(teardownObservers)
 /* ---------------------------------------------------------------- 通用区块 */
 .tz-section {
   padding: 104px 24px;
+  /*
+    吸顶导航条高 56px。点导航跳转时，区块顶部若直接对齐滚动容器顶端，
+    会被这条导航盖掉 56px —— 虽然盖住的是内边距、标题还在下面，
+    但区块自己的背景色会被切掉一截，看着像没对齐。
+    scroll-margin-top 让浏览器在定位时提前留出这段距离。
+  */
+  scroll-margin-top: 56px;
 
   &--alt {
     background: var(--bg-alt);

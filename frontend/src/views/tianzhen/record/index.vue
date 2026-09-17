@@ -50,8 +50,8 @@
         <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['tz:record:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-tag v-if="aiConfig.mode === 'preset'" type="warning" effect="plain">
-          未配置大模型 Key，当前为预置映射 + 知识库检索模式
+        <el-tag v-if="!aiConfig.visionAvailable" type="warning" effect="plain">
+          图片诊断使用预置样张 + 知识库兜底
         </el-tag>
         <el-tag v-else type="success" effect="plain">{{ aiConfig.modeText }}</el-tag>
       </el-col>

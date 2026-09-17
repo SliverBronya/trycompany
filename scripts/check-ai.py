@@ -42,7 +42,8 @@ SRC_YML = os.path.join(ROOT, "backend", "ruoyi-admin", "src", "main", "resources
 JAR = os.path.join(ROOT, "backend", "ruoyi-admin", "target", "ruoyi-admin.jar")
 UPLOAD_DIR = os.path.join("D:/ruoyi/uploadPath/upload")
 
-KEYS = ("provider", "base-url", "vision-model", "text-model", "temperature")
+KEYS = ("provider", "base-url", "vision-provider", "vision-base-url",
+        "vision-model", "text-provider", "text-base-url", "text-model", "temperature")
 
 
 def read_yml_text(path):
@@ -143,9 +144,13 @@ def main():
     args = ap.parse_args()
 
     cfg = load_config()
-    base = (cfg["base-url"] or "").rstrip("/")
-    url = base + "/chat/completions"
-    key = os.environ.get("TZ_AI_API_KEY", "").strip()
+    vision_base = (cfg.get("vision-base-url") or cfg["base-url"] or "").rstrip("/")
+    text_base = (cfg.get("text-base-url") or cfg["base-url"] or "").rstrip("/")
+    vision_url = vision_base + "/chat/completions"
+    text_url = text_base + "/chat/completions"
+    shared_key = os.environ.get("TZ_AI_API_KEY", "").strip()
+    vision_key = os.environ.get("TZ_AI_VISION_API_KEY", "").strip() or shared_key
+    text_key = os.environ.get("TZ_AI_TEXT_API_KEY", "").strip() or shared_key
     temp = float(cfg["temperature"] or 0.2)
 
     print("=" * 68)
@@ -158,12 +163,14 @@ def main():
     if not cfg.get("_jar_diff") and cfg.get("_jar_note"):
         print("  [i] 读 jar 里的配置失败（%s），跳过一致性比对" % cfg["_jar_note"])
 
-    if not key:
-        print("\n[跳过] 未设置 TZ_AI_API_KEY，无法探测。设置后重跑：")
-        print('       PowerShell:  $env:TZ_AI_API_KEY = "你的key"')
+    if not vision_key and not text_key:
+        print("\n[跳过] 未设置大模型 API Key，无法探测。设置后重跑：")
+        print('       PowerShell:  $env:TZ_AI_API_KEY = "你的视觉 key"')
+        print('       PowerShell:  $env:TZ_AI_TEXT_API_KEY = "你的 DeepSeek key"')
         return 2
 
-    print("\n接口地址：%s" % url)
+    print("\n视觉接口地址：%s" % vision_url)
+    print("文本接口地址：%s" % text_url)
     failures = 0
 
     # ---- 1. 视觉模型 + base64 data URL ----
@@ -199,7 +206,11 @@ def main():
                 ]},
             ],
         }
-        status, raw, ms = post(url, key, payload, args.timeout)
+        if not vision_key:
+            print("  [跳过] 未设置视觉模型 API Key")
+            status, raw, ms = 0, "未设置视觉模型 API Key", 0
+        else:
+            status, raw, ms = post(vision_url, vision_key, payload, args.timeout)
         if status != 200:
             failures += 1
             print("  [失败] HTTP %s，耗时 %d ms" % (status, ms))
@@ -243,7 +254,11 @@ def main():
                 "用药注意：未收录\n\n请按要求输出 JSON。"},
         ],
     }
-    status, raw, ms = post(url, key, payload, args.timeout)
+    if not text_key:
+        print("  [跳过] 未设置文本模型 API Key")
+        status, raw, ms = 0, "未设置文本模型 API Key", 0
+    else:
+        status, raw, ms = post(text_url, text_key, payload, args.timeout)
     if status != 200:
         failures += 1
         print("  [失败] HTTP %s，耗时 %d ms" % (status, ms))

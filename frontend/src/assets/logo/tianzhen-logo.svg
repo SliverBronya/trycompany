@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <title>田诊助手</title>
+  <!--
+    品牌标记：左侧弧形体 + 信号弧 + 放大镜。
+
+    配色由原先的三种墨绿改为一条对角线性渐变（黄绿 → 青绿），
+    与用户提供的品牌图一致。保持矢量而不是嵌入位图，
+    这样侧边栏 30px、登录页 96px、APP 图标 432px 都由同一份源文件派生，任何尺寸都清晰。
+
+    渐变方向取左上到右下：图上大弧的左端偏黄、右端偏青，一条对角渐变即可覆盖全部元素。
+  -->
+  <defs>
+    <linearGradient id="tzBrandGradient" x1="12%" y1="6%" x2="88%" y2="94%">
+      <stop offset="0%" stop-color="#B6E85C"/>
+      <stop offset="45%" stop-color="#6FDC84"/>
+      <stop offset="100%" stop-color="#35C9A0"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M58.4 17.5C33.6 20.1 17.3 35.6 17.3 57.5c0 19.3 12 35 31.3 39.2 12.2 2.7 24.3-1.7 31.1-10.1L65.2 72.1c-3.3 3.2-7.6 5.1-12.3 5.1-10.2 0-18.4-8.2-18.4-18.4 0-15.3 10.3-25.2 27.2-29.1 1.8-.4 2.5-2.6 1.3-4l-2.1-2.7c-.7-.9-1.6-1.4-2.5-1.3Z"
+        fill="url(#tzBrandGradient)"/>
+
+  <path d="M87.7 23.6c11.7 2.2 21.7 8.5 28.7 17.4"
+        stroke="url(#tzBrandGradient)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M86.9 40.3c7.9 1.8 14.8 6 19.9 11.8"
+        stroke="url(#tzBrandGradient)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M85.2 57.2c3.7 1.3 6.9 3.6 9.2 6.5"
+        stroke="url(#tzBrandGradient)" stroke-width="8" stroke-linecap="round"/>
+
+  <circle cx="63.6" cy="64.5" r="25.5" stroke="url(#tzBrandGradient)" stroke-width="8"/>
+
+  <path d="m80.6 82.1 21.1 21.1"
+        stroke="url(#tzBrandGradient)" stroke-width="13" stroke-linecap="round"/>
+
+  <path d="M49.1 64.4c0-8.1 6.5-14.6 14.6-14.6"
+        stroke="url(#tzBrandGradient)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M40.8 83.4c8.6 5.8 17.9 7.6 27.5 5.1"
+        stroke="url(#tzBrandGradient)" stroke-width="5" stroke-linecap="round"/>
+</svg>
