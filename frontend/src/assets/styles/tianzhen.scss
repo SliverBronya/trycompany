@@ -1,0 +1,641 @@
+/**
+ * 田诊助手 设计系统 —— 「农事台账」
+ *
+ * 定位：柑橘植保诊断与巡田管理系统，使用者是农技员、合作社管理员、企业管理者。
+ * 设计意图：像一本严谨的田间记录册 —— 纸感底色、深墨绿主色、克制的排版，
+ * 让数据（病害名、置信度、风险等级、剂量）成为页面的主角，而不是装饰。
+ *
+ * 三条自我约束（改样式时请守住）：
+ *   1. 深墨绿只在关键处用：主按钮、激活态、强调数字。铺满就廉价了。
+ *   2. 页面底用米白而非纯白，卡片才浮得起来、才有纸感。全白会糊成一片。
+ *   3. 不引入渐变色块、不做统一圆角卡片堆叠、不加全大写小标签 ——
+ *      这三样是"一眼看出是模板"的特征。
+ *
+ * 主色不在这里定义：它由 utils/theme.js 在运行时注入 --el-color-primary，
+ * 内联样式优先级高于本文件，在这里写会被覆盖。要改主色去 store/modules/settings.js。
+ */
+
+/* ==========================================================================
+   1. 设计令牌
+   ========================================================================== */
+
+:root {
+  /* 品牌：深墨绿。取自柑橘叶背的沉绿色，不是科技蓝，也不是荧光绿 */
+  --tz-primary: #2f6b4f;
+  --tz-primary-deep: #24523d;
+  --tz-primary-soft: #e8f0ea;
+  --tz-primary-line: #c3d8cb;
+
+  /* 纸感层次：底 → 面 → 浮层 */
+  --tz-paper: #f6f4ee;
+  --tz-surface: #ffffff;
+  --tz-surface-2: #fbfaf6;
+  --tz-surface-3: #f2efe7;
+
+  /* 墨色文字阶梯（带绿倾向的暖黑，比纯黑柔和） */
+  --tz-ink: #16302a;
+  --tz-ink-2: #3d4f47;
+  --tz-ink-3: #6f8078;
+  --tz-ink-4: #9aa8a1;
+
+  /* 描边：暖灰，不用冷灰，否则和米白底打架 */
+  --tz-line: #e4e0d5;
+  --tz-line-soft: #efede5;
+  --tz-line-strong: #d3cec0;
+
+  /* 语义色：风险等级。用土色系而非纯正红黄绿，避免刺眼、也更符合田间语境 */
+  --tz-risk-high: #b4453a;
+  --tz-risk-mid: #bd8330;
+  --tz-risk-low: #4e7c5b;
+  --tz-risk-high-bg: #fbeeec;
+  --tz-risk-mid-bg: #fbf3e6;
+  --tz-risk-low-bg: #ecf3ee;
+
+  /* 信息色 */
+  --tz-info: #4a6f8a;
+  --tz-info-bg: #eef3f6;
+
+  /* 尺度 */
+  --tz-radius: 10px;
+  --tz-radius-sm: 6px;
+  --tz-radius-lg: 14px;
+
+  /* 阴影：极轻。"浮起"靠的是色差，不是重投影 */
+  --tz-shadow-1: 0 1px 2px rgba(22, 48, 42, 0.05);
+  --tz-shadow-2: 0 2px 8px rgba(22, 48, 42, 0.07);
+  --tz-shadow-3: 0 8px 24px rgba(22, 48, 42, 0.10);
+
+  /* 排版：离线环境不加载 webfont，用系统字体栈，中文优先苹方/雅黑 */
+  --tz-font: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Hiragino Sans GB",
+             -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --tz-font-num: "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace;
+
+  /* 表头/工具栏这类"结构性底色"，用于编码层级而不是装饰 */
+  --tz-head-bg: #f3f1ea;
+}
+
+html.dark {
+  --tz-primary: #5a9b76;
+  --tz-primary-deep: #6fae8a;
+  --tz-primary-soft: #1e2f27;
+  --tz-primary-line: #35543f;
+
+  --tz-paper: #16181a;
+  --tz-surface: #1d1e1f;
+  --tz-surface-2: #212324;
+  --tz-surface-3: #262829;
+
+  --tz-ink: #e8ebe9;
+  --tz-ink-2: #c2c9c5;
+  --tz-ink-3: #8d9792;
+  --tz-ink-4: #6a736e;
+
+  --tz-line: #33383a;
+  --tz-line-soft: #2b2f31;
+  --tz-line-strong: #434a4c;
+
+  --tz-risk-high: #d4756a;
+  --tz-risk-mid: #d8a961;
+  --tz-risk-low: #7aab8b;
+  --tz-risk-high-bg: #33231f;
+  --tz-risk-mid-bg: #332b1e;
+  --tz-risk-low-bg: #1f2d24;
+
+  --tz-info: #7ba4c0;
+  --tz-info-bg: #1e2a31;
+
+  --tz-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --tz-shadow-2: 0 2px 8px rgba(0, 0, 0, 0.36);
+  --tz-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  --tz-head-bg: #24262a;
+}
+
+/* ==========================================================================
+   2. Element Plus 变量对齐
+   注意：这里刻意不设 --el-color-primary，它由 utils/theme.js 运行时注入
+   ========================================================================== */
+
+:root {
+  --el-bg-color: var(--tz-surface);
+  --el-bg-color-page: var(--tz-paper);
+  --el-bg-color-overlay: var(--tz-surface);
+  --el-text-color-primary: var(--tz-ink);
+  --el-text-color-regular: var(--tz-ink-2);
+  --el-text-color-secondary: var(--tz-ink-3);
+  --el-text-color-placeholder: var(--tz-ink-4);
+  --el-text-color-disabled: var(--tz-ink-4);
+  --el-border-color: var(--tz-line);
+  --el-border-color-light: var(--tz-line-soft);
+  --el-border-color-lighter: var(--tz-line-soft);
+  --el-border-color-extra-light: var(--tz-line-soft);
+  --el-border-color-dark: var(--tz-line-strong);
+  --el-border-color-darker: var(--tz-line-strong);
+  --el-fill-color: var(--tz-surface-3);
+  --el-fill-color-light: var(--tz-surface-2);
+  --el-fill-color-lighter: var(--tz-surface-2);
+  --el-fill-color-blank: var(--tz-surface);
+  --el-border-radius-base: var(--tz-radius-sm);
+  --el-border-radius-small: 4px;
+  --el-box-shadow: var(--tz-shadow-2);
+  --el-box-shadow-light: var(--tz-shadow-1);
+  --el-box-shadow-lighter: var(--tz-shadow-1);
+  --el-mask-color: rgba(22, 48, 42, 0.42);
+  --el-font-family: var(--tz-font);
+}
+
+html.dark {
+  --el-bg-color: var(--tz-surface);
+  --el-bg-color-page: var(--tz-paper);
+  --el-bg-color-overlay: var(--tz-surface-2);
+  --el-text-color-primary: var(--tz-ink);
+  --el-text-color-regular: var(--tz-ink-2);
+  --el-text-color-secondary: var(--tz-ink-3);
+  --el-text-color-placeholder: var(--tz-ink-4);
+  --el-border-color: var(--tz-line);
+  --el-border-color-light: var(--tz-line-soft);
+  --el-border-color-lighter: var(--tz-line-soft);
+  --el-border-color-extra-light: var(--tz-line-soft);
+  --el-fill-color: var(--tz-surface-3);
+  --el-fill-color-light: var(--tz-surface-2);
+  --el-fill-color-lighter: var(--tz-surface-2);
+  --el-fill-color-blank: var(--tz-surface);
+  --el-mask-color: rgba(0, 0, 0, 0.62);
+}
+
+/* ==========================================================================
+   3. 基础排版
+   ========================================================================== */
+
+body {
+  font-family: var(--tz-font);
+  background-color: var(--tz-paper);
+  color: var(--tz-ink);
+}
+
+/* 数字统一等宽：指标卡、表格、置信度对齐后，扫读速度完全不一样 */
+.tz-num,
+.el-table .cell,
+.el-pagination,
+.el-descriptions__content {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 页面底：让卡片有"浮在纸上"的层次 */
+.app-main {
+  background-color: var(--tz-paper);
+}
+
+/* ==========================================================================
+   4. 容器与页头
+   ========================================================================== */
+
+.app-container {
+  padding: 18px 20px 28px;
+}
+
+/* 统一的页头：标题 + 说明 + 右侧操作区。
+   用它替代"直接甩一个表格上来"的页面开头，给页面一个明确的入口。 */
+.tz-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--tz-line);
+
+  .tz-page-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--tz-ink);
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .tz-page-desc {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--tz-ink-3);
+    max-width: 68ch;
+  }
+}
+
+/* ==========================================================================
+   5. 卡片与区块
+   ========================================================================== */
+
+.el-card {
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
+  background-color: var(--tz-surface);
+  /* 默认阴影换成极轻的：EP 自带的投影在米白底上显脏 */
+  box-shadow: var(--tz-shadow-1) !important;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+
+  &.is-hover-shadow:hover,
+  &.is-always-shadow {
+    box-shadow: var(--tz-shadow-2) !important;
+  }
+
+  .el-card__header {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--tz-line-soft);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--tz-ink);
+    background-color: transparent;
+  }
+
+  .el-card__body {
+    padding: 18px;
+  }
+}
+
+/* 区块标题：用于卡片内部再分节 */
+.tz-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tz-ink);
+  margin: 0 0 12px;
+
+  /* 左侧短竖线是"结构性标记"，用于编码分组，不是装饰 */
+  &::before {
+    content: "";
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background-color: var(--tz-primary);
+  }
+}
+
+/* ==========================================================================
+   6. 指标数值
+   ========================================================================== */
+
+/* 指标卡不再做成"一排等宽小卡片"，改为可组合的数值块：
+   数字用等宽字体拉开层级，标签小而安静 */
+.tz-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .tz-metric-value {
+    font-family: var(--tz-font-num);
+    font-variant-numeric: tabular-nums;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: var(--tz-ink);
+  }
+
+  .tz-metric-label {
+    font-size: 12.5px;
+    color: var(--tz-ink-3);
+    line-height: 1.4;
+  }
+}
+
+/* ==========================================================================
+   7. 组件皮肤
+   ========================================================================== */
+
+/* --- 表格：去掉格子感，用行分隔和表头底色编码结构 --- */
+.el-table {
+  --el-table-border-color: var(--tz-line-soft);
+  --el-table-header-bg-color: var(--tz-head-bg);
+  --el-table-header-text-color: var(--tz-ink-2);
+  --el-table-row-hover-bg-color: var(--tz-surface-2);
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  background-color: transparent;
+
+  th.el-table__cell {
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    border-bottom: 1px solid var(--tz-line) !important;
+  }
+
+  td.el-table__cell {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--tz-line-soft) !important;
+  }
+
+  /* 去掉外框和竖线，表格靠行的节奏来读，不靠网格 */
+  &::before,
+  &::after {
+    display: none;
+  }
+
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+}
+
+/* --- 按钮 --- */
+.el-button {
+  border-radius: var(--tz-radius-sm);
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &--primary {
+    /* 主按钮用深墨绿实底，这是全站最"重"的元素，别的地方就该安静 */
+    &:not(.is-plain):not(.is-text):not(.is-link) {
+      box-shadow: 0 1px 2px rgba(36, 82, 61, 0.20);
+    }
+  }
+}
+
+/* 表格里成排的小操作按钮：弱化成文字链，避免"按钮墙" */
+.el-table .el-button.is-link,
+.el-table .el-button.is-text {
+  padding: 2px 4px;
+  height: auto;
+  font-weight: 500;
+}
+
+/* --- 标签：降低饱和度，用底色而不是描边来区分 --- */
+.el-tag {
+  border-radius: 5px;
+  font-weight: 500;
+  border-width: 1px;
+}
+
+/* --- 输入类控件：统一描边与聚焦态 --- */
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+  border-radius: var(--tz-radius-sm);
+  box-shadow: 0 0 0 1px var(--tz-line) inset;
+
+  &:hover {
+    box-shadow: 0 0 0 1px var(--tz-line-strong) inset;
+  }
+
+  &.is-focus,
+  &:focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+  }
+}
+
+/* --- 查询/工具栏：和内容区分开，用底色编码"这是操作区" --- */
+.tz-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background-color: var(--tz-surface);
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
+  box-shadow: var(--tz-shadow-1);
+
+  .el-form-item {
+    margin-bottom: 0;
+    margin-right: 0;
+  }
+}
+
+/* --- 空状态 --- */
+.el-empty__description p {
+  color: var(--tz-ink-3);
+  font-size: 13px;
+}
+
+/* --- 文字链：若依原样是硬编码的 #337ab7，与墨绿主色打架，统一到主色 --- */
+.link-type,
+.link-type:focus {
+  color: var(--el-color-primary);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--el-color-primary-light-3);
+  }
+}
+
+/* --- 分页 --- */
+.el-pagination {
+  --el-pagination-button-bg-color: transparent;
+  justify-content: flex-end;
+  padding: 14px 0 2px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   8. 布局外壳：侧边栏
+   把若依默认的深蓝黑（#1a1f2e）换成与登录页品牌区一致的深墨绿，整站才像一个系统。
+   两个坑：
+     a) el-menu 的 background-color 是 Vue 用 inline style 注入的 CSS 变量，
+        同级规则盖不住 —— 必须对变量本身下 !important。
+     b) sidebar.scss 里的规则带 #app 前缀（含 ID），特异性比普通类高，
+        所以这里只改配色与状态，不去动它定的 height / min-width，免得踩布局。
+   ========================================================================== */
+
+.sidebar-container.sidebar-container {
+  --tz-sb-bg: #1c3a2d;
+  --tz-sb-sub: #162f25;
+  --tz-sb-text: rgba(233, 240, 234, 0.74);
+  --tz-sb-text-active: #ffffff;
+  --tz-sb-hover: rgba(255, 255, 255, 0.07);
+  --tz-sb-active: rgba(255, 255, 255, 0.12);
+  --tz-sb-mark: #6fbf8f;
+
+  background-color: var(--tz-sb-bg) !important;
+  box-shadow: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+
+  /* logo 区必须与菜单同色。原实现里 logo 背景走的是另一套 JS 计算，
+     取不到值时会退化成透明，在深色侧边栏顶上露出一块浅底，
+     看上去像两块板子拼起来的 —— 这是最显眼的一处割裂。 */
+  .sidebar-logo-container {
+    background-color: var(--tz-sb-bg) !important;
+
+    .sidebar-title {
+      color: var(--tz-sb-text-active) !important;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+  }
+
+  .scrollbar-wrapper {
+    background-color: transparent !important;
+  }
+
+  .el-menu {
+    padding: 6px 0;
+    background-color: transparent !important;
+    border-right: none !important;
+    --el-menu-bg-color: transparent !important;
+    --el-menu-hover-bg-color: var(--tz-sb-hover) !important;
+    --el-menu-text-color: var(--tz-sb-text) !important;
+    --el-menu-active-color: var(--tz-sb-text-active) !important;
+  }
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: var(--tz-sb-text) !important;
+    font-size: 13.5px;
+    letter-spacing: 0.2px;
+
+    &:hover {
+      background-color: var(--tz-sb-hover) !important;
+      color: var(--tz-sb-text-active) !important;
+    }
+  }
+
+  /* 选中项：底色 + 左侧短指示条。
+     指示条回答的是"你现在在哪"，是结构信号；没有它，深色侧边栏上的
+     选中态只剩一点点亮度差，扫视时很难定位。 */
+  .el-menu-item.is-active {
+    position: relative;
+    background-color: var(--tz-sb-active) !important;
+    color: var(--tz-sb-text-active) !important;
+    font-weight: 500;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 18px;
+      border-radius: 0 2px 2px 0;
+      background-color: var(--tz-sb-mark);
+    }
+  }
+
+  /* 子菜单用更深的色阶编码层级，而不是靠缩进硬凑 */
+  .el-sub-menu .el-menu {
+    background-color: var(--tz-sb-sub) !important;
+  }
+
+  .svg-icon {
+    margin-right: 9px !important;
+    font-size: 16px;
+  }
+}
+
+html.dark .sidebar-container.sidebar-container {
+  --tz-sb-bg: #131d19;
+  --tz-sb-sub: #0f1714;
+  --tz-sb-mark: #5a9b76;
+}
+
+/* ==========================================================================
+   9. 布局外壳：顶栏与标签栏
+   ========================================================================== */
+
+.navbar {
+  height: 52px !important;
+  background-color: var(--tz-surface) !important;
+  border-bottom: 1px solid var(--tz-line) !important;
+  box-shadow: none !important;
+
+  .hamburger-container {
+    height: 52px;
+    line-height: 52px;
+    color: var(--tz-ink-2);
+
+    &:hover {
+      background-color: var(--tz-surface-3);
+    }
+  }
+
+  .breadcrumb-container {
+    .el-breadcrumb__inner,
+    .el-breadcrumb__inner a {
+      color: var(--tz-ink-3);
+      font-weight: 400;
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
+    }
+
+    /* 当前页用墨色加重，路径的"你在哪"才读得出来 */
+    .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+      color: var(--tz-ink);
+      font-weight: 500;
+    }
+
+    .el-breadcrumb__separator {
+      color: var(--tz-ink-4);
+    }
+  }
+
+  .right-menu {
+    .right-menu-item {
+      height: 52px;
+      line-height: 52px;
+      color: var(--tz-ink-2);
+      border-radius: var(--tz-radius-sm);
+
+      &.hover-effect:hover {
+        background-color: var(--tz-surface-3);
+      }
+    }
+  }
+
+  .avatar-wrapper {
+    .user-nickname {
+      color: var(--tz-ink-2);
+      font-size: 13px;
+    }
+
+    .user-avatar {
+      border: 1px solid var(--tz-line);
+      vertical-align: middle;
+    }
+  }
+}
+
+/* 标签栏：它是"开过哪些页"的记录，不该比正文更抢眼，所以压低调子。
+   组件自己的 scoped 样式（TagsView/index.vue）特异性更高，这里必须显式覆盖。 */
+.tags-view-container {
+  height: 36px !important;
+  background-color: var(--tz-surface) !important;
+  border-bottom: 1px solid var(--tz-line) !important;
+  box-shadow: none !important;
+
+  .tags-view-wrapper .tags-view-item {
+    height: 24px !important;
+    line-height: 22px !important;
+    padding: 0 9px !important;
+    border: 1px solid var(--tz-line) !important;
+    border-radius: var(--tz-radius-sm) !important;
+    background-color: var(--tz-surface-2) !important;
+    color: var(--tz-ink-3) !important;
+    font-size: 12.5px !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--tz-surface-3) !important;
+      color: var(--tz-ink) !important;
+    }
+
+    /* 当前标签用主色浅底 + 描边，不再整块填主色 —— 标签栏里一块饱和色太吵，
+       而且会和正文里的主色按钮抢注意力 */
+    &.active {
+      background-color: var(--tz-primary-soft) !important;
+      border-color: var(--tz-primary-line) !important;
+      color: var(--tz-primary-deep) !important;
+      font-weight: 500 !important;
+
+      &::before {
+        background-color: var(--tz-primary) !important;
+      }
+    }
+  }
+}

@@ -160,7 +160,10 @@ public class OpenAiCompatLlmClient implements LlmClient
     {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(properties.getApiKey());
+        /* 按「本次是不是视觉调用」取 key：支持视觉/文本各配一个，
+           只配了一个时 resolveApiKey 会自动回退，不会因此调不通 */
+        boolean visionCall = imageBytes != null && imageBytes.length > 0;
+        headers.setBearerAuth(properties.resolveApiKey(visionCall));
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("model", model);

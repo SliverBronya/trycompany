@@ -1,66 +1,95 @@
 <template>
   <div class="login">
-    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">{{ title }}</h3>
-      <el-form-item prop="username">
-        <el-input
-          v-model="loginForm.username"
-          type="text"
-          size="large"
-          auto-complete="off"
-          placeholder="账号"
-        >
-          <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="password">
-        <el-input
-          v-model="loginForm.password"
-          type="password"
-          size="large"
-          auto-complete="off"
-          placeholder="密码"
-          @keyup.enter="handleLogin"
-        >
-          <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="code" v-if="captchaEnabled">
-        <el-input
-          v-model="loginForm.code"
-          size="large"
-          auto-complete="off"
-          placeholder="验证码"
-          style="width: 63%"
-          @keyup.enter="handleLogin"
-        >
-          <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
-        </el-input>
-        <div class="login-code">
-          <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+    <!-- 左：品牌区。放的是系统真实能力，不是营销话术 —— 登录页也是台账的封面 -->
+    <section class="login-brand">
+      <header class="brand-top">
+        <img src="@/assets/logo/logo.png" class="brand-logo" alt="" />
+        <span class="brand-name">{{ title }}</span>
+      </header>
+
+      <div class="brand-mid">
+        <h1 class="brand-headline">柑橘植保<br />巡田与诊断台账</h1>
+        <ul class="brand-points">
+          <li v-for="point in highlights" :key="point.name">
+            <span class="point-name">{{ point.name }}</span>
+            <span class="point-desc">{{ point.desc }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <footer class="brand-foot">
+        <span>{{ brandFoot }}</span>
+      </footer>
+    </section>
+
+    <!-- 右：登录表单 -->
+    <section class="login-panel">
+      <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
+        <h2 class="form-title">登录</h2>
+        <p class="form-sub">请使用分配给你的账号登录</p>
+
+        <el-form-item prop="username">
+          <el-input
+            v-model="loginForm.username"
+            type="text"
+            size="large"
+            auto-complete="off"
+            placeholder="账号"
+          >
+            <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item prop="password">
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            size="large"
+            auto-complete="off"
+            placeholder="密码"
+            @keyup.enter="handleLogin"
+          >
+            <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item prop="code" v-if="captchaEnabled">
+          <el-input
+            v-model="loginForm.code"
+            size="large"
+            auto-complete="off"
+            placeholder="验证码"
+            style="width: 63%"
+            @keyup.enter="handleLogin"
+          >
+            <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
+          </el-input>
+          <div class="login-code">
+            <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+          </div>
+        </el-form-item>
+
+        <div class="form-row">
+          <el-checkbox v-model="loginForm.rememberMe">记住密码</el-checkbox>
+          <router-link v-if="register" class="link-type" :to="'/register'">立即注册</router-link>
         </div>
-      </el-form-item>
-      <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
-      <el-form-item style="width:100%;">
+
         <el-button
           :loading="loading"
           size="large"
           type="primary"
-          style="width:100%;"
+          class="submit-btn"
           @click.prevent="handleLogin"
         >
           <span v-if="!loading">登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
-        <div style="float: right;" v-if="register">
-          <router-link class="link-type" :to="'/register'">立即注册</router-link>
-        </div>
-      </el-form-item>
-    </el-form>
-    <!--  底部  -->
-    <div class="el-login-footer">
-      <span>{{ footerContent }}</span>
-    </div>
+      </el-form>
+
+      <div class="el-login-footer">
+        <span>{{ footerContent }}</span>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -73,6 +102,17 @@ import defaultSettings from '@/settings'
 
 const title = import.meta.env.VITE_APP_TITLE
 const footerContent = defaultSettings.footerContent
+
+// 左侧品牌区写的是系统的真实能力，不是宣传语 —— 这几条都能在系统里找到对应功能。
+// 登录页不该许诺产品没有的东西，尤其这个项目的底线是"结论可以没有，但不能编"。
+const highlights = [
+  { name: '巡田记录', desc: '影像与症状一并归档，田间情况可回溯' },
+  { name: 'AI 辅助初诊', desc: '结论同时标注置信度与来源，把握不足就明说不采信' },
+  { name: '剂量双向校验', desc: '用药建议逐条比对知识库，超量自动拦下' },
+  { name: '植保知识库', desc: '症状、用药与注意事项一站检索' }
+]
+
+const brandFoot = '本系统结论仅供巡田参考，不能替代农技人员的现场诊断与农药标签说明。'
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
@@ -176,72 +216,202 @@ getCookie()
 <style lang='scss' scoped>
 .login {
   display: flex;
-  justify-content: center;
-  align-items: center;
   height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
-  background-size: cover;
+  background-color: var(--tz-paper);
 }
-.title {
-  margin: 0px auto 30px auto;
-  text-align: center;
-  color: #707070;
+
+/* ---------- 左：品牌区 ---------- */
+.login-brand {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 46px 52px;
+  background-color: #1c3a2d;
+  color: #e9f0ea;
+}
+
+.brand-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #e9f0ea;
+  }
+}
+
+.brand-mid {
+  max-width: 46ch;
+}
+
+.brand-headline {
+  margin: 0 0 26px;
+  font-size: clamp(28px, 3.1vw, 42px);
+  font-weight: 600;
+  line-height: 1.26;
+  letter-spacing: -0.4px;
+  color: #ffffff;
+}
+
+.brand-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    padding: 11px 0;
+    /* 细线是拿来分隔条目的结构线，不是装饰 */
+    border-top: 1px solid rgba(233, 240, 234, 0.15);
+
+    &:last-child {
+      border-bottom: 1px solid rgba(233, 240, 234, 0.15);
+    }
+  }
+
+  .point-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #e9f0ea;
+    margin-bottom: 3px;
+  }
+
+  .point-desc {
+    display: block;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(233, 240, 234, 0.6);
+  }
+}
+
+.brand-foot {
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(233, 240, 234, 0.58);
+  max-width: 52ch;
+}
+
+/* ---------- 右：表单区 ---------- */
+.login-panel {
+  flex: 0 0 50%;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  background-color: var(--tz-paper);
 }
 
 .login-form {
-  border-radius: 6px;
-  background: #ffffff;
-  width: 400px;
-  padding: 25px 25px 5px 25px;
-  z-index: 1;
+  width: 100%;
+  max-width: 372px;
+}
+
+.form-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--tz-ink);
+}
+
+.form-sub {
+  margin: 7px 0 26px;
+  font-size: 13px;
+  color: var(--tz-ink-3);
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.submit-btn {
+  width: 100%;
+  letter-spacing: 4px;
+  font-weight: 500;
+}
+
+.login-form {
   .el-input {
-    height: 40px;
+    height: 44px;
+
     input {
-      height: 40px;
+      height: 44px;
     }
   }
+
   .input-icon {
-    height: 39px;
+    height: 20px;
     width: 14px;
-    margin-left: 0px;
+    margin-left: 0;
   }
 }
-.login-tip {
-  font-size: 13px;
-  text-align: center;
-  color: #bfbfbf;
-}
+
 .login-code {
   width: 33%;
-  height: 40px;
+  height: 44px;
   float: right;
+
   img {
     cursor: pointer;
     vertical-align: middle;
   }
 }
-.el-login-footer {
-  height: 40px;
-  line-height: 40px;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  text-align: center;
-  color: #fff;
-  font-family: Arial;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
+
 .login-code-img {
-  height: 40px;
+  height: 44px;
   padding-left: 12px;
 }
 
-html.dark .login {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url("../assets/images/login-background.jpg");
-  .login-form {
-    background: var(--el-bg-color-overlay) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+.el-login-footer {
+  margin-top: 34px;
+  max-width: 372px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--tz-ink-4);
+}
+
+/* ---------- 窄屏：收起品牌区，只留表单 ---------- */
+@media screen and (max-width: 900px) {
+  .login-brand {
+    display: none;
+  }
+
+  .login-panel {
+    flex: 1 1 auto;
+  }
+}
+
+/* ---------- 暗色 ---------- */
+html.dark {
+  .login {
+    background-color: var(--tz-paper);
+  }
+
+  .login-brand {
+    background-color: #131d19;
+  }
+
+  .login-panel {
+    background-color: var(--tz-paper);
   }
 }
 </style>

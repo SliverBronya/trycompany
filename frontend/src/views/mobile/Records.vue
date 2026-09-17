@@ -16,18 +16,29 @@
       <div v-if="loading" class="m-tip">加载中…</div>
       <div v-else-if="!list.length" class="m-empty">还没有记录<br />点右下角按钮拍一张</div>
 
+      <!--
+        列表带上缩略图。原来这里只有文字，翻历史记录时看不到当初拍的是什么 ——
+        而巡田记录的判断依据本来就是那张照片，桌面端列表一直有缩略图列，手机端漏了。
+      -->
       <div
         v-for="r in list"
         :key="r.recordId"
-        class="m-card m-card-link"
+        class="m-rec-item"
         @click="go('/m/record/' + r.recordId)"
       >
-        <div class="m-row">
-          <span class="m-strong">{{ r.diagnosisName || '待诊断' }}</span>
-          <span class="m-tag" :class="riskClass(r.riskLevel)">{{ riskText(r.riskLevel) }}</span>
+        <TzImage v-if="r.imageUrl" :url="r.imageUrl" class-name="m-rec-thumb" />
+        <div v-else class="m-rec-thumb m-rec-thumb--empty">
+          <el-icon :size="18"><Picture /></el-icon>
         </div>
-        <div class="m-muted m-ellipsis">{{ r.plotName || '—' }} · {{ r.scoutTime || '' }}</div>
-        <div class="m-muted m-ellipsis" v-if="r.symptomText">{{ r.symptomText }}</div>
+
+        <div class="m-rec-body">
+          <div class="m-row">
+            <span class="m-strong">{{ r.diagnosisName || '待诊断' }}</span>
+            <span class="m-tag" :class="riskClass(r.riskLevel)">{{ riskText(r.riskLevel) }}</span>
+          </div>
+          <div class="m-muted m-ellipsis">{{ r.plotName || '—' }} · {{ r.scoutTime || '' }}</div>
+          <div class="m-muted m-ellipsis" v-if="r.symptomText">{{ r.symptomText }}</div>
+        </div>
       </div>
     </div>
 
@@ -42,7 +53,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { listRecord } from '@/api/tianzhen/record'
-import { Camera } from '@element-plus/icons-vue'
+import { Camera, Picture } from '@element-plus/icons-vue'
+import TzImage from '@/components/TzImage/index.vue'
 
 const router = useRouter()
 const list = ref([])
@@ -71,6 +83,9 @@ onMounted(load)
 </script>
 
 <style scoped>
+/* 记录列表项的样式已提到 mobile.scss —— 首页「最近巡田」用的是同一套，
+   放在这里 scoped 的话那边拿不到，只能复制一份，迟早改漏。
+   这里只保留本页专属的悬浮按钮。 */
 .m-fab {
   position: fixed;
   right: 16px;
@@ -79,14 +94,14 @@ onMounted(load)
   height: 54px;
   border-radius: 50%;
   border: none;
-  background: #0f6e56;
+  background: var(--tz-primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(15, 110, 86, 0.35);
+  box-shadow: 0 4px 14px rgba(47, 107, 79, 0.32);
   z-index: 90;
   -webkit-tap-highlight-color: transparent;
 }
-.m-fab:active { background: #0c5844; }
+.m-fab:active { background: var(--tz-primary-deep); }
 </style>

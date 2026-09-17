@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 与生成图标时用的底色一致（品牌农业绿）。
-         adaptive icon 是「背景色 + 前景图」两层合成的，
-         这里和图标底色不一致会出现一圈突兀的白边。 -->
-    <color name="ic_launcher_background">#0F6E56</color>
+    <!-- 与 drawable/ic_launcher_background.xml 以及生成的图标底色保持一致。
+         adaptive icon 是「背景色 + 前景图」两层合成的，这里和图标底色不一致
+         会在某些启动器上露出一圈突兀的色边。
+         取值 = 全站主色（assets/styles/tianzhen.scss 里的 tz-primary）。
+         注意：XML 注释里不能出现连续两个短横线，所以这里不写带前缀的变量名。 -->
+    <color name="ic_launcher_background">#2F6B4F</color>
 </resources>

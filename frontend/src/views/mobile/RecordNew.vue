@@ -12,22 +12,39 @@
         <div class="m-field-label">现场照片（必填）</div>
 
         <TzImage v-if="form.imageUrl" :url="form.imageUrl" class-name="m-photo" alt="现场照片" />
-        <label v-else class="m-photo-picker">
+        <label v-else class="m-photo-picker" @click="pickCamera">
           <el-icon :size="30"><Camera /></el-icon>
           <span>点击拍照</span>
         </label>
 
+        <!--
+          两个 input 分开：带 capture 的直调后置摄像头，不带的交给系统选择器
+          （Android 弹「相机 / 文件」，iOS 弹「照片图库 / 拍照 / 浏览」）。
+
+          原来只有一个带 capture 的 input，于是在不少手机上点「拍照 / 选图」
+          会**直接进相机、根本没有从图库选的机会** —— 而田里拍完存下的照片、
+          微信里收到的照片，都只能从图库来。capture 是 input 上的属性，
+          没法在同一个 input 上又拍照又开图库，所以必须拆成两个。
+        -->
         <input
-          ref="fileRef"
+          ref="cameraRef"
           type="file"
           accept="image/*"
           capture="environment"
           style="display:none"
           @change="onPick"
         />
+        <input
+          ref="galleryRef"
+          type="file"
+          accept="image/*"
+          style="display:none"
+          @change="onPick"
+        />
 
         <div class="m-btn-row">
-          <button class="m-btn is-plain" @click="pick">拍照 / 选图</button>
+          <button class="m-btn is-plain" @click="pickCamera">拍照</button>
+          <button class="m-btn is-plain" @click="pickGallery">从图库选</button>
         </div>
         <div v-if="uploading" class="m-tip" style="padding:8px 0">照片上传中…</div>
       </div>
@@ -102,7 +119,8 @@ import { getServerBase, tunnelHeaders } from '@/utils/tzServer'
 import TzImage from '@/components/TzImage/index.vue'
 
 const router = useRouter()
-const fileRef = ref()
+const cameraRef = ref()
+const galleryRef = ref()
 const plots = ref([])
 const uploading = ref(false)
 const describing = ref(false)
@@ -112,7 +130,10 @@ const descStateText = ref('')
 const form = ref({ imageUrl: '', symptomText: '', plotId: undefined, plantPart: '1', severity: '2' })
 
 function back() { router.back() }
-function pick() { fileRef.value && fileRef.value.click() }
+
+/* 两个入口分开：拍照走带 capture 的 input，从图库选走不带 capture 的 */
+function pickCamera() { cameraRef.value && cameraRef.value.click() }
+function pickGallery() { galleryRef.value && galleryRef.value.click() }
 
 async function onPick(e) {
   const file = e.target.files && e.target.files[0]

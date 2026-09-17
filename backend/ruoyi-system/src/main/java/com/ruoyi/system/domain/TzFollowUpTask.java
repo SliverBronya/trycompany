@@ -55,6 +55,34 @@ public class TzFollowUpTask extends BaseEntity
     @Excel(name = "状态", readConverterExp = "0=待复查,1=已复查,2=已逾期")
     private String status;
 
+    /**
+     * 复查结论：病害相对上次诊断的发展趋势。
+     *
+     * 这是「完成复查」真正该留下的东西 —— 有了它，同一地块的多次复查才连成
+     * 一条发展曲线，才看得出上次的防治到底有没有效果。
+     */
+    @Excel(name = "复查结论",
+           readConverterExp = "controlled=已控制,shrinking=好转,stable=持平,worsening=加重,unknown=无法判断")
+    private String reviewResult;
+
+    /** 复查现场照片路径（与巡田记录同格式，存 /profile/... 相对路径） */
+    private String reviewImage;
+
+    /** 复查前已采取的措施（用了什么药、怎么处理的），用于复盘防治有效性 */
+    @Excel(name = "已采取的措施")
+    @Size(max = 500, message = "措施说明长度不能超过500个字符")
+    private String measureTaken;
+
+    /** 后续安排 */
+    @Excel(name = "后续安排",
+           readConverterExp = "none=无需处理,observe=继续观察,recheck=需再复查,treat=需再施药,expert=请专家现场查看")
+    private String nextAction;
+
+    /** 下次复查日期（nextAction 为 recheck 时填写） */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "下次复查", width = 20, dateFormat = "yyyy-MM-dd")
+    private Date nextDate;
+
     /** 复查备注 */
     @Excel(name = "复查备注")
     @Size(max = 500, message = "复查备注长度不能超过500个字符")
@@ -157,6 +185,56 @@ public class TzFollowUpTask extends BaseEntity
         this.status = status;
     }
 
+    public String getReviewResult()
+    {
+        return reviewResult;
+    }
+
+    public void setReviewResult(String reviewResult)
+    {
+        this.reviewResult = reviewResult;
+    }
+
+    public String getReviewImage()
+    {
+        return reviewImage;
+    }
+
+    public void setReviewImage(String reviewImage)
+    {
+        this.reviewImage = reviewImage;
+    }
+
+    public String getMeasureTaken()
+    {
+        return measureTaken;
+    }
+
+    public void setMeasureTaken(String measureTaken)
+    {
+        this.measureTaken = measureTaken;
+    }
+
+    public String getNextAction()
+    {
+        return nextAction;
+    }
+
+    public void setNextAction(String nextAction)
+    {
+        this.nextAction = nextAction;
+    }
+
+    public Date getNextDate()
+    {
+        return nextDate;
+    }
+
+    public void setNextDate(Date nextDate)
+    {
+        this.nextDate = nextDate;
+    }
+
     public String getNote()
     {
         return note;
@@ -207,6 +285,11 @@ public class TzFollowUpTask extends BaseEntity
             .append("taskTitle", getTaskTitle())
             .append("dueDate", getDueDate())
             .append("status", getStatus())
+            .append("reviewResult", getReviewResult())
+            .append("reviewImage", getReviewImage())
+            .append("measureTaken", getMeasureTaken())
+            .append("nextAction", getNextAction())
+            .append("nextDate", getNextDate())
             .append("note", getNote())
             .append("finishTime", getFinishTime())
             .append("createBy", getCreateBy())

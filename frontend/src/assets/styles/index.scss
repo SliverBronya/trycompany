@@ -4,6 +4,9 @@
 @use './sidebar.scss';
 @use './btn.scss';
 @use './ruoyi.scss';
+// 田诊助手自有设计系统（「农事台账」）。位置有讲究：放在若依这层之后才能盖住基调，
+// 又要排在 responsive / mobile 之前，让移动端适配仍然能盖住它。
+@use './tianzhen.scss';
 // 手机网页版适配。放在最后：媒体查询里的规则要能盖住前面这些全局样式
 @use './responsive.scss';
 // 手机端（/m/*）独立的一套 UI，与桌面端不是缩放关系

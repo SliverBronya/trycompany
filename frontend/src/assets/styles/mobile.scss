@@ -5,22 +5,37 @@
  * 也还是表格；手机端要的是「一屏一件事 + 大按钮 + 底部导航」，信息密度和操作
  * 方式都不同，硬让同一套布局适配两边，结果通常是两边都别扭。
  *
- * 设计语言沿用产品主色（农业绿 #0f6e56），白卡片、大圆角、轻阴影，
- * 触控目标不小于 44px。
+ * ── 与桌面端共用同一套设计令牌 ──────────────────────────────
+ * 之前这里的颜色是硬编码的（#0f6e56 等），和桌面端的 --tz-* 体系是两套，
+ * 于是 App 和网站看起来像两个产品。现在全部改走 --tz-*：
+ * App 与网站的主色、圆角、阴影、语义色从此同源，改一处两边都变。
+ *
+ * 沿用 mobile-app-ui-design 的几条硬规则：
+ *   · 60/30/10 —— 米白/墨绿底为主，主色只用在 CTA、选中态、关键数字上；
+ *   · 触控目标不小于 44px；
+ *   · 柔和阴影且带背景色调（不用纯灰黑）；
+ *   · 不用大块渐变做装饰。
+ *
+ * 注意：--tz-* 定义在 tianzhen.scss，本文件由 index.scss 在其之后引入，
+ * 所以变量在这里一定拿得到。
  */
 
 .m-page {
   min-height: 100vh;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
+  background: var(--tz-paper);
+  color: var(--tz-ink);
 }
 
 // ---------------------------------------------------------------- 顶部
+// 原来是 135° 双色渐变。渐变当装饰是"一眼看出是模板"的特征之一，
+// 而且桌面端品牌区用的是纯色，两边对不上。改纯色深墨绿，与登录页一致。
 .m-hero {
-  background: linear-gradient(135deg, #0f6e56 0%, #1d9e75 100%);
+  background: #1c3a2d;
   color: #fff;
-  padding: 18px 16px 20px;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 18px;
+  padding: 20px 16px 22px;
+  border-bottom-left-radius: var(--tz-radius-lg);
+  border-bottom-right-radius: var(--tz-radius-lg);
 }
 .m-hero-top {
   display: flex;
@@ -30,56 +45,62 @@
 }
 .m-hero-title {
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 .m-hero-sub {
   font-size: 12px;
-  opacity: 0.85;
-  margin-top: 2px;
+  opacity: 0.8;
+  margin-top: 4px;
 }
 .m-hero-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 .m-hero-btn {
   flex: 1;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 12px;
+  min-height: 68px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--tz-radius);
   padding: 12px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
   font-size: 13px;
+  color: #fff;
   -webkit-tap-highlight-color: transparent;
 }
 .m-hero-btn:active {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 // ---------------------------------------------------------------- 分区
 .m-section {
-  margin: 14px 12px 0;
+  margin: 16px 12px 0;
 }
 .m-section-title {
   font-size: 14px;
   font-weight: 600;
-  color: #2f3a36;
+  color: var(--tz-ink);
   margin: 0 2px 8px;
 }
 
 // ---------------------------------------------------------------- 卡片
+// 用细边框而不是投影来表达"这是一张卡"。投影在米白底上容易显脏，
+// 而且和桌面端（边框 + 极轻阴影）不是一套语言。
 .m-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 4px rgba(15, 110, 86, 0.06);
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--tz-shadow-1);
 }
 .m-card-link:active {
-  background: #f7faf9;
+  background: var(--tz-surface-2);
 }
 .m-row {
   display: flex;
@@ -90,11 +111,11 @@
 .m-strong {
   font-size: 15px;
   font-weight: 600;
-  color: #1f2b26;
+  color: var(--tz-ink);
 }
 .m-muted {
   font-size: 12px;
-  color: #8b9691;
+  color: var(--tz-ink-3);
   margin-top: 4px;
 }
 .m-ellipsis {
@@ -104,14 +125,16 @@
 }
 .m-tip {
   font-size: 13px;
-  color: #9aa5a1;
-  padding: 18px 0;
+  color: var(--tz-ink-3);
+  padding: 16px 0;
   text-align: center;
 }
+/* 空状态是"邀请用户行动"的地方，不该只是一句灰字 */
 .m-empty {
   text-align: center;
-  color: #9aa5a1;
+  color: var(--tz-ink-3);
   font-size: 13px;
+  line-height: 1.8;
   padding: 40px 20px;
 }
 
@@ -122,21 +145,25 @@
   gap: 8px;
 }
 .m-stat {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
   padding: 12px 6px;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(15, 110, 86, 0.06);
 }
 .m-stat-value {
+  /* 数字用等宽体，多张卡片并排时数位能对齐，扫读快很多 */
+  font-family: var(--tz-font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
+  color: var(--tz-ink);
 }
 .m-stat-label {
   font-size: 11px;
-  color: #8b9691;
-  margin-top: 2px;
+  color: var(--tz-ink-3);
+  margin-top: 4px;
 }
 
 // ---------------------------------------------------------------- 标签
@@ -145,34 +172,40 @@
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 11px;
-  line-height: 1.6;
-  background: #eef3f1;
-  color: #6b7b74;
+  line-height: 1.7;
+  background: var(--tz-surface-3);
+  color: var(--tz-ink-2);
 }
-.m-tag.is-high { background: #fdeceb; color: #d9534f; }
-.m-tag.is-mid  { background: #fdf3e6; color: #e6a23c; }
-.m-tag.is-low  { background: #ecf7f2; color: #1d9e75; }
-.m-tag.is-ok   { background: #ecf7f2; color: #1d9e75; }
+/* 语义色统一走 --tz-risk-*，与桌面端的风险等级是同一组色 */
+.m-tag.is-high { background: var(--tz-risk-high-bg); color: var(--tz-risk-high); }
+.m-tag.is-mid  { background: var(--tz-risk-mid-bg);  color: var(--tz-risk-mid); }
+.m-tag.is-low  { background: var(--tz-risk-low-bg);  color: var(--tz-risk-low); }
+.m-tag.is-ok   { background: var(--tz-risk-low-bg);  color: var(--tz-risk-low); }
 
 // ---------------------------------------------------------------- 表单
 .m-field {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .m-field-label {
   font-size: 13px;
-  color: #5b6b64;
-  margin-bottom: 6px;
+  color: var(--tz-ink-2);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .m-select,
 .m-input,
 .m-textarea {
   width: 100%;
-  border: 1px solid #dfe5e2;
-  border-radius: 10px;
+  min-height: 44px;          /* 触控目标下限 */
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius-sm);
   padding: 10px 12px;
-  font-size: 15px;
-  background: #fff;
-  color: #1f2b26;
+  font-size: 16px;           /* iOS 上低于 16px 会触发聚焦缩放 */
+  font-family: inherit;
+  background: var(--tz-surface);
+  color: var(--tz-ink);
   box-sizing: border-box;
 }
 .m-textarea {
@@ -184,7 +217,7 @@
 .m-input:focus,
 .m-textarea:focus {
   outline: none;
-  border-color: #1d9e75;
+  border-color: var(--tz-primary);
 }
 
 // ---------------------------------------------------------------- 按钮
@@ -193,46 +226,85 @@
   width: 100%;
   min-height: 46px;
   border: none;
-  border-radius: 12px;
-  background: #0f6e56;
+  border-radius: var(--tz-radius);
+  background: var(--tz-primary);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
+  font-family: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-.m-btn:active { background: #0c5844; }
-.m-btn:disabled { background: #b3c2bc; }
+.m-btn:active { background: var(--tz-primary-deep); }
+.m-btn:disabled { background: var(--tz-ink-4); }
 .m-btn.is-plain {
-  background: #fff;
-  color: #0f6e56;
-  border: 1px solid #0f6e56;
+  background: var(--tz-surface);
+  color: var(--tz-primary);
+  border: 1px solid var(--tz-primary-line);
 }
 .m-btn-row {
   display: flex;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 // ---------------------------------------------------------------- 图片
 .m-photo {
   width: 100%;
-  border-radius: 12px;
+  border-radius: var(--tz-radius);
   display: block;
-  background: #eef2f0;
+  background: var(--tz-surface-3);
 }
 .m-photo-picker {
-  border: 1px dashed #c3d0ca;
-  border-radius: 12px;
-  background: #fbfdfc;
+  border: 1px dashed var(--tz-line-strong);
+  border-radius: var(--tz-radius);
+  background: var(--tz-surface-2);
   min-height: 150px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  color: #8b9691;
+  gap: 8px;
+  color: var(--tz-ink-3);
   font-size: 13px;
   -webkit-tap-highlight-color: transparent;
+}
+
+// ---------------------------------------------------------------- 记录列表项
+// 首页「最近巡田」和巡田记录页共用同一套。
+// 放全局而不是各自 scoped：两个页面都要用，各写一份迟早改漏一处。
+.m-rec-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
+  box-shadow: var(--tz-shadow-1);
+  -webkit-tap-highlight-color: transparent;
+}
+.m-rec-item:active {
+  background: var(--tz-surface-2);
+}
+.m-rec-thumb {
+  flex: 0 0 auto;
+  width: 66px;
+  height: 66px;
+  border-radius: var(--tz-radius-sm);
+  object-fit: cover;
+  background: var(--tz-surface-3);
+}
+.m-rec-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tz-ink-4);
+}
+.m-rec-body {
+  flex: 1;
+  /* flex 子项默认 min-width:auto，不设 0 的话内部省略号不生效，
+     一条长症状描述就能把卡片顶宽 */
+  min-width: 0;
 }
 
 // ---------------------------------------------------------------- 子页顶部栏
@@ -240,13 +312,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 50px;
+  height: 52px;
   padding: 0 14px;
-  background: #fff;
-  border-bottom: 1px solid #eef1f0;
+  background: var(--tz-surface);
+  border-bottom: 1px solid var(--tz-line);
   font-size: 16px;
   font-weight: 600;
-  color: #1f2b26;
+  color: var(--tz-ink);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -258,31 +330,47 @@
 
 // ---------------------------------------------------------------- 抽屉里的列表项
 .m-drawer-item {
-  padding: 14px 4px;
-  border-bottom: 1px solid #f0f3f1;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--tz-line-soft);
   font-size: 15px;
-  color: #1f2b26;
+  color: var(--tz-ink);
 }
-.m-drawer-item.m-danger { color: #d9534f; }
+.m-drawer-item.m-danger { color: var(--tz-risk-high); }
 
 // ---------------------------------------------------------------- 正文段落（详情/建议）
 .m-block {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 4px rgba(15, 110, 86, 0.06);
+  background: var(--tz-surface);
+  border: 1px solid var(--tz-line);
+  border-radius: var(--tz-radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--tz-shadow-1);
 }
 .m-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #0f6e56;
+  color: var(--tz-ink);
   margin-bottom: 8px;
+
+  /* 左侧短竖线：和桌面端的 .tz-section-title 同一套结构性标记 */
+  &::before {
+    content: "";
+    width: 3px;
+    height: 13px;
+    border-radius: 2px;
+    background: var(--tz-primary);
+  }
 }
 .m-text {
   font-size: 14px;
   line-height: 1.8;
-  color: #34423c;
+  color: var(--tz-ink-2);
   white-space: pre-wrap;
   word-break: break-word;
 }

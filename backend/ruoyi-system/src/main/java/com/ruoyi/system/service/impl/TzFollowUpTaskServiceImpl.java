@@ -19,11 +19,17 @@ import com.ruoyi.system.service.ITzScoutingRecordService;
 @Service
 public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
 {
+    /** 待复查（新建任务时的初始状态） */
+    private static final String STATUS_PENDING = "0";
+
     /** 已复查 */
     private static final String STATUS_DONE = "1";
 
     /** 巡田记录状态：已复查 */
     private static final String RECORD_STATUS_DONE = "4";
+
+    /** 后续安排：仍需再次复查（选了它就自动排下一轮任务） */
+    private static final String ACTION_RECHECK = "recheck";
 
     @Autowired
     private TzFollowUpTaskMapper tzFollowUpTaskMapper;
@@ -141,6 +147,30 @@ public class TzFollowUpTaskServiceImpl implements ITzFollowUpTaskService
                 update.setRecordId(saved.getRecordId());
                 update.setStatus(RECORD_STATUS_DONE);
                 tzScoutingRecordService.updateTzScoutingRecord(update);
+            }
+
+            // 复查时判断「仍需再次复查」→ 自动排下一轮任务。
+            //
+            // 不做这一步，「复查」就永远是个一次性动作：这次看完，要等下次巡田时
+            // 再想起来手动新建一条，而多数人不会去做 —— 闭环恰好断在最需要它的地方。
+            // 自动排期让「发现风险 → 处理 → 复查 → 再复查」真正串起来。
+            if (saved != null
+                    && ACTION_RECHECK.equals(tzFollowUpTask.getNextAction())
+                    && tzFollowUpTask.getNextDate() != null)
+            {
+                String plotText = saved.getPlotName() == null ? "地块" : saved.getPlotName();
+                String day = new java.text.SimpleDateFormat("M月d日").format(tzFollowUpTask.getNextDate());
+
+                TzFollowUpTask next = new TzFollowUpTask();
+                next.setRecordId(saved.getRecordId());
+                next.setPlotId(saved.getPlotId());
+                next.setCompanyId(saved.getCompanyId());
+                next.setDeptId(saved.getDeptId());
+                next.setTaskTitle("复查跟进：" + plotText + " " + day);
+                next.setDueDate(tzFollowUpTask.getNextDate());
+                next.setStatus(STATUS_PENDING);
+                next.setCreateBy(tzFollowUpTask.getUpdateBy());
+                tzFollowUpTaskMapper.insertTzFollowUpTask(next);
             }
         }
         return rows;

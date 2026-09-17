@@ -29,6 +29,18 @@ public class AiProperties
     /** API Key，务必用环境变量注入，不要写死在配置里 */
     private String apiKey = "";
 
+    /**
+     * 视觉模型专用 Key，留空则回退到 {@link #apiKey}。
+     *
+     * 拆成两个是为将来留口子：视觉与文本可能来自不同服务商，或同一家的两个额度。
+     * 现在两者共用同一个智谱 key，所以只填 apiKey 也完全正常 —— 回退逻辑在
+     * {@link #resolveApiKey(boolean)} 里，不会因为少填一个就整条链路不可用。
+     */
+    private String visionApiKey = "";
+
+    /** 文本模型专用 Key，留空则回退到 {@link #apiKey} */
+    private String textApiKey = "";
+
     /** 多模态模型名（要能读图） */
     private String visionModel = "qwen-vl-plus";
 
@@ -72,11 +84,31 @@ public class AiProperties
     private String disclaimer = "本结论由 AI 辅助生成，仅作为巡田参考，不能替代农技人员的现场诊断与农药标签说明。";
 
     /**
-     * 大模型调用是否可用：开关打开且 key 非空。
+     * 取本次调用该用的 Key。
+     *
+     * 有专用 key 就用专用的，没有就回退到通用 key —— 这样「只配一个 key」
+     * 和「视觉/文本分开配」两种用法都能跑，不必让使用者先搞清楚该填哪个。
+     *
+     * @param vision 本次是否为视觉模型调用（带了图）
+     */
+    public String resolveApiKey(boolean vision)
+    {
+        String specific = vision ? visionApiKey : textApiKey;
+        return StringUtils.isNotBlank(specific) ? specific : apiKey;
+    }
+
+    /**
+     * 大模型调用是否可用：开关打开，且至少配了一个 key。
      */
     public boolean isAvailable()
     {
-        return enabled && StringUtils.isNotBlank(apiKey);
+        if (!enabled)
+        {
+            return false;
+        }
+        return StringUtils.isNotBlank(apiKey)
+                || StringUtils.isNotBlank(visionApiKey)
+                || StringUtils.isNotBlank(textApiKey);
     }
 
     /**
@@ -130,6 +162,26 @@ public class AiProperties
     public void setApiKey(String apiKey)
     {
         this.apiKey = apiKey;
+    }
+
+    public String getVisionApiKey()
+    {
+        return visionApiKey;
+    }
+
+    public void setVisionApiKey(String visionApiKey)
+    {
+        this.visionApiKey = visionApiKey;
+    }
+
+    public String getTextApiKey()
+    {
+        return textApiKey;
+    }
+
+    public void setTextApiKey(String textApiKey)
+    {
+        this.textApiKey = textApiKey;
     }
 
     public String getVisionModel()

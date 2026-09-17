@@ -24,7 +24,7 @@
       <div class="m-section-title">概览</div>
       <div class="m-grid-3">
         <div class="m-stat" v-for="card in cards" :key="card.key">
-          <div class="m-stat-value" :style="{ color: card.color }">{{ card.value }}</div>
+          <div class="m-stat-value" :class="card.tone ? 'is-' + card.tone : ''">{{ card.value }}</div>
           <div class="m-stat-label">{{ card.label }}</div>
         </div>
       </div>
@@ -37,14 +37,20 @@
       <div
         v-for="r in records"
         :key="r.recordId"
-        class="m-card m-card-link"
+        class="m-rec-item"
         @click="go('/m/record/' + r.recordId)"
       >
-        <div class="m-row">
-          <span class="m-strong">{{ r.diagnosisName || '待诊断' }}</span>
-          <span class="m-tag" :class="riskClass(r.riskLevel)">{{ riskText(r.riskLevel) }}</span>
+        <TzImage v-if="r.imageUrl" :url="r.imageUrl" class-name="m-rec-thumb" />
+        <div v-else class="m-rec-thumb m-rec-thumb--empty">
+          <el-icon :size="18"><Picture /></el-icon>
         </div>
-        <div class="m-muted m-ellipsis">{{ r.plotName || '—' }} · {{ r.scoutTime || '' }}</div>
+        <div class="m-rec-body">
+          <div class="m-row">
+            <span class="m-strong">{{ r.diagnosisName || '待诊断' }}</span>
+            <span class="m-tag" :class="riskClass(r.riskLevel)">{{ riskText(r.riskLevel) }}</span>
+          </div>
+          <div class="m-muted m-ellipsis">{{ r.plotName || '—' }} · {{ r.scoutTime || '' }}</div>
+        </div>
       </div>
     </div>
 
@@ -75,9 +81,10 @@ import { ElMessageBox } from 'element-plus'
 import { getDashboardStats } from '@/api/tianzhen/dashboard'
 import { listRecord } from '@/api/tianzhen/record'
 import { getAiConfig } from '@/api/tianzhen/ai'
-import { User, Camera, MapLocation } from '@element-plus/icons-vue'
+import { User, Camera, MapLocation, Picture } from '@element-plus/icons-vue'
 import { isCustomServer } from '@/utils/tzServer'
 import request from '@/utils/request'
+import TzImage from '@/components/TzImage/index.vue'
 
 const router = useRouter()
 const stats = ref({})
@@ -88,13 +95,20 @@ const isCustom = ref(false)
 const hasCompany = ref(true)
 const modeText = ref('')
 
+/**
+ * 概览指标。
+ *
+ * 原来每项都硬编码一个颜色（墨绿/浅绿/红/黄交替出现），但那几种颜色之间
+ * 并没有语义差别 —— 纯粹是装饰。颜色一多，真正需要行动的两项（高风险、待复查）
+ * 反而淹在中间。现在只有这两项上色，其余统一墨色，颜色重新变回信号。
+ */
 const cards = ref([
-  { key: 'totalRecords', label: '巡田总数', value: 0, color: '#0f6e56' },
-  { key: 'monthRecords', label: '本月巡田', value: 0, color: '#1d9e75' },
-  { key: 'highRiskRecords', label: '高风险', value: 0, color: '#d9534f' },
-  { key: 'pendingTaskCount', label: '待复查', value: 0, color: '#e6a23c' },
-  { key: 'plotCount', label: '地块数', value: 0, color: '#0f6e56' },
-  { key: 'avgConfidence', label: '平均置信', value: 0, color: '#1d9e75' }
+  { key: 'totalRecords', label: '巡田总数', value: 0 },
+  { key: 'monthRecords', label: '本月巡田', value: 0 },
+  { key: 'highRiskRecords', label: '高风险', value: 0, tone: 'high' },
+  { key: 'pendingTaskCount', label: '待复查', value: 0, tone: 'mid' },
+  { key: 'plotCount', label: '地块数', value: 0 },
+  { key: 'avgConfidence', label: '平均置信', value: 0 }
 ])
 
 function pick(key) {
@@ -156,3 +170,14 @@ onMounted(async () => {
   cards.value.forEach(c => { c.value = pick(c.key) })
 })
 </script>
+
+<style scoped>
+/* 只有需要行动的两项上色：高风险（土红）与待复查（赭黄）。
+   六个数字全上色 = 都不上色，视线反而抓不住该先看哪个。 */
+.m-stat-value.is-high {
+  color: var(--tz-risk-high);
+}
+.m-stat-value.is-mid {
+  color: var(--tz-risk-mid);
+}
+</style>

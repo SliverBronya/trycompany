@@ -53,8 +53,10 @@ function go(path) {
 
 <style scoped>
 .m-app {
+  /* dvh：手机上地址栏/键盘会改变可视高度，vh 不会跟着变，用 dvh 更稳 */
   min-height: 100vh;
-  background: #f4f6f5;
+  min-height: 100dvh;
+  background: var(--tz-paper);
 }
 .m-body {
   padding-bottom: calc(58px + env(safe-area-inset-bottom));
@@ -66,10 +68,11 @@ function go(path) {
   bottom: 0;
   z-index: 100;
   display: flex;
-  background: #fff;
-  border-top: 1px solid #ebeef5;
+  background: var(--tz-surface);
+  border-top: 1px solid var(--tz-line);
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -1px 8px rgba(15, 110, 86, 0.06);
+  /* 阴影带上背景色调（不用纯灰黑），在米白底上才不显脏 */
+  box-shadow: 0 -1px 8px rgba(22, 48, 42, 0.06);
 }
 .m-tabbar-item {
   flex: 1;
@@ -79,12 +82,12 @@ function go(path) {
   justify-content: center;
   gap: 2px;
   height: 58px;
-  color: #9aa5a1;
+  color: var(--tz-ink-3);
   font-size: 11px;
   -webkit-tap-highlight-color: transparent;
 }
 .m-tabbar-item.is-active {
-  color: #0f6e56;
+  color: var(--tz-primary);
   font-weight: 600;
 }
 </style>
